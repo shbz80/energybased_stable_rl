@@ -6,7 +6,7 @@ from torch.distributions.independent import Independent
 from energybased_stable_rl.utilities.diff import jacobian # the jacobian API in pyTorch is not used because it requires a
                                                     # function to be passed
 from energybased_stable_rl.policies.energy_control_modules import ICNN, Damping
-
+import time
 class GaussianEnergyBasedModule(nn.Module):
     """GaussianPSMLPModule with a mean network and only variance parameter for parameter space
 
@@ -187,7 +187,9 @@ class GaussianEnergyBasedModule(nn.Module):
             std = std.exp().exp().add(1.).log()
 
         with torch.enable_grad():
+            st_time = time.time()
             mean = self._get_action(*inputs)
+            print('Batch inference time:', time.time() - st_time)
             param_list = []
             for param in self.named_parameters():
                 if '_init_std' in param:
@@ -201,6 +203,14 @@ class GaussianEnergyBasedModule(nn.Module):
             else:
                 var_shape = mean.shape
                 var = torch.zeros(var_shape)
+
+            st_time = time.time()
+            # J_list = []
+            # for param in param_list:
+            #     J = jacobian(mean, param, create_graph=False)
+            #     J_list.append(J.view(J.shape[0], J.shape[1], -1))
+            # J_mat = torch.cat(J_list,2)
+
             for n in range(mean.shape[0]):
                 if not(n % self._jac_update_rate):
                     Jl = []
@@ -216,7 +226,7 @@ class GaussianEnergyBasedModule(nn.Module):
                 else:
                     Sigma = torch.eye(J.shape[1]) * std
                     var[n] = torch.diag(J @ Sigma @ J.t())
-
+            print('Batch Jacobian time:', time.time() - st_time)
         return mean, var
 
 

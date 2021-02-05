@@ -35,7 +35,7 @@ def block2D_energy_based_ppo(ctxt=None, seed=1):
                                        damper_full_mat=True,
                                        init_std=0.5,
                                        full_std=False,
-                                       jac_update_rate=5,
+                                       jac_update_rate=1,
                                        init_quad_pot=1.0,
                                        min_quad_pot=1e-3,
                                        max_quad_pot=1e1,
