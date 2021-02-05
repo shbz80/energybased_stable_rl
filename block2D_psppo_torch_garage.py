@@ -30,14 +30,15 @@ def block2D_psppo_torch_garage(ctxt=None, seed=1):
     env = GymEnv('Block2D-v1',max_episode_length=T)
     trainer = Trainer(ctxt)
 
-    jac_update_rate = 10
+    jac_update_rate = 1
     policy = GaussianPSMLPPolicy(env.spec,
                                hidden_sizes=[16, 16],
                                hidden_nonlinearity=torch.tanh,
                                output_nonlinearity=None,
                                init_std=1.,
                                full_std=True,
-                               jac_update_rate=jac_update_rate)
+                               jac_update_rate=jac_update_rate,
+                               jac_batch_size = 64)
     # policy_optimizer = OptimizerWrapper(
     #     (torch.optim.Adam, dict(lr=2.5e-4)),
     #     policy,
@@ -46,13 +47,13 @@ def block2D_psppo_torch_garage(ctxt=None, seed=1):
     policy_optimizer = OptimizerWrapper(
         (torch.optim.Adam, dict(lr=2.5e-4)),
         policy,
-        max_optimization_epochs=5,
+        max_optimization_epochs=10,
         minibatch_size=64)
 
     value_function = LinearFeatureBaseline(env_spec=env.spec)
 
     N = 100  # number of epochs
-    S = 15  # number of episodes in an epoch
+    S = 10  # number of episodes in an epoch
     algo = PPO(env_spec=env.spec,
                policy=policy,
                policy_optimizer=policy_optimizer,
@@ -60,20 +61,25 @@ def block2D_psppo_torch_garage(ctxt=None, seed=1):
                discount=0.995,
                lr_clip_range=0.2,)
 
+    # resume_dir = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment/block2D_psppo_torch_garage'
+    # trainer.restore(resume_dir, from_epoch=45)
+    # trainer.resume(n_epochs=100)
     trainer.setup(algo, env, n_workers=S, sampler_cls=LocalSampler, worker_class=DefaultWorker)
     trainer.train(n_epochs=N, batch_size=T*S, plot=True, store_episodes=True)
 
 block2D_psppo_torch_garage(seed=1)
 
 # block2D_psppo_torch_garage(seed=1)
-# jac_update_rate = 10
+# block2D_psppo_torch_garage_1
+# jac_update_rate = 1
 # policy = GaussianPSMLPPolicy(env.spec,
-#                            hidden_sizes=[16, 16],
-#                            hidden_nonlinearity=torch.tanh,
-#                            output_nonlinearity=None,
-#                            init_std=1.,
-#                            full_std=True,
-#                            jac_update_rate=jac_update_rate)
+#                              hidden_sizes=[16, 16],
+#                              hidden_nonlinearity=torch.tanh,
+#                              output_nonlinearity=None,
+#                              init_std=3.,
+#                              full_std=True,
+#                              jac_update_rate=jac_update_rate,
+#                              jac_batch_size=64)
 # policy_optimizer = OptimizerWrapper(
 #     (torch.optim.Adam, dict(lr=2.5e-4)),
 #     policy,
@@ -82,7 +88,7 @@ block2D_psppo_torch_garage(seed=1)
 #
 # value_function = LinearFeatureBaseline(env_spec=env.spec)
 #
-# N = 100  # number of epochs
+# N = 50  # number of epochs
 # S = 15  # number of episodes in an epoch
 # algo = PPO(env_spec=env.spec,
 #            policy=policy,
@@ -104,4 +110,16 @@ block2D_psppo_torch_garage(seed=1)
 # v = 2
 # w = 1
 # TERMINAL_STATE_SCALE = 10
-# size="0.05 0.048 0.05"
+# size="0.05 0.045 0.05"
+
+# block2D_psppo_torch_garage_2(seed=1)
+# jac_update_rate = 1
+# policy = GaussianPSMLPPolicy(env.spec,
+#                              hidden_sizes=[16, 16],
+#                              hidden_nonlinearity=torch.tanh,
+#                              output_nonlinearity=None,
+#                              init_std=1.,
+#                              full_std=True,
+#                              jac_update_rate=jac_update_rate,
+#                              jac_batch_size=64)
+

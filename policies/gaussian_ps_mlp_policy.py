@@ -67,6 +67,7 @@ class GaussianPSMLPPolicy(StochasticPSPolicy):
                  std_parameterization='exp',
                  layer_normalization=False,
                  jac_update_rate = 10,
+                 jac_batch_size = 64,
                  name='GaussianMLPPolicy'):
         super().__init__(env_spec, name)
         self._obs_dim = env_spec.observation_space.flat_dim
@@ -87,8 +88,10 @@ class GaussianPSMLPPolicy(StochasticPSPolicy):
             max_std=max_std,
             full_std=full_std,
             jac_update_rate = jac_update_rate,
+            jac_batch_size = jac_batch_size,
             std_parameterization=std_parameterization,
             layer_normalization=layer_normalization)
+        self.selected_param_key = []
 
     def forward(self, observations):
         """Compute the action distributions from the observations.
@@ -105,4 +108,25 @@ class GaussianPSMLPPolicy(StochasticPSPolicy):
         dist = self._module(observations)
         return (dist, dict(mean=dist.mean, log_std=(dist.variance**.5).log()))
 
+    def set_param_values(self, state_dict):
+        """Set the parameters to the policy.
+
+        This method is included to ensure consistency with TF policies.
+
+        Args:
+            state_dict (dict): State dictionary.
+
+        """
+        if isinstance(state_dict, dict):
+            self.load_state_dict(state_dict)
+
+        if isinstance(state_dict, tuple):
+            assert(isinstance(state_dict[0], dict))
+            self.load_state_dict(state_dict[0])
+            self.selected_param_key = state_dict[1]
+
+    def set_param_keys(self, param_keys):
+        self._module.param_keys = param_keys
+        named_params = dict([param for param in self.named_parameters()])
+        self._module.param_values = [[named_params[p_key] for p_key in param_key] for param_key in param_keys]
 

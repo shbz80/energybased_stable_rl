@@ -5,7 +5,8 @@ from garage.torch.distributions import TanhNormal
 from torch.distributions.independent import Independent
 from energybased_stable_rl.utilities.diff import jacobian # the jacobian API in pyTorch is not used because it requires a
                                                     # function to be passed
-from garage.torch.modules.mlp_module import MLPModule
+# from garage.torch.modules.mlp_module import MLPModule
+from energybased_stable_rl.policies.mlp_ps_module import MLPPSModule
 from garage.torch.modules import GaussianMLPBaseModule
 
 class GaussianPSMLPModule(GaussianMLPBaseModule):
@@ -70,6 +71,7 @@ class GaussianPSMLPModule(GaussianMLPBaseModule):
                  max_std=None,
                  full_std=False,
                  jac_update_rate = 10,
+                 jac_batch_size = 64,
                  std_parameterization='exp',
                  layer_normalization=False,
                  normal_distribution_cls=Normal):
@@ -79,6 +81,9 @@ class GaussianPSMLPModule(GaussianMLPBaseModule):
         else:
             self.normal_distribution_cls = Normal
         self.jac_update_rate = jac_update_rate
+        self.jac_batch_size = jac_batch_size
+        self.param_keys = []
+        self.param_values = []
         super(GaussianPSMLPModule,
               self).__init__(input_dim=input_dim,
                              output_dim=output_dim,
@@ -97,7 +102,7 @@ class GaussianPSMLPModule(GaussianMLPBaseModule):
                              layer_normalization=layer_normalization,
                              normal_distribution_cls=self.normal_distribution_cls)
 
-        self._mean_module = MLPModule(
+        self._mean_module = MLPPSModule(
             input_dim=self._input_dim,
             output_dim=self._action_dim,
             hidden_sizes=self._hidden_sizes,
@@ -106,9 +111,7 @@ class GaussianPSMLPModule(GaussianMLPBaseModule):
             hidden_b_init=self._hidden_b_init,
             output_nonlinearity=self._output_nonlinearity,
             output_w_init=self._output_w_init,
-            output_b_init=self._output_b_init,
-            layer_normalization=self._layer_normalization)
-
+            output_b_init=self._output_b_init)
 
 
     def _get_mean_and_std(self, *inputs):
@@ -148,8 +151,8 @@ class GaussianPSMLPModule(GaussianMLPBaseModule):
             for n in range(mean.shape[0]):
                 if not(n % self.jac_update_rate):
                     Jl = []
-                    for param in self._mean_module.parameters():
-                        Jn = jacobian(mean[n], param, create_graph=True)
+                    for param in self.param_values[n]:
+                        Jn = jacobian(mean[n], param, create_graph=False)
                         Jl.append(Jn.view(Jn.shape[0],-1))
 
                     J = torch.cat(Jl, dim=1)
