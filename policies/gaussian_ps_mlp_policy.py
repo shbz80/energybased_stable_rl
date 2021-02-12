@@ -66,7 +66,7 @@ class GaussianPSMLPPolicy(StochasticPSPolicy):
                  full_std = False,
                  std_parameterization='exp',
                  layer_normalization=False,
-                 jac_update_rate = 10,
+                 jac_update_rate = 1,
                  jac_batch_size = 64,
                  name='GaussianMLPPolicy'):
         super().__init__(env_spec, name)

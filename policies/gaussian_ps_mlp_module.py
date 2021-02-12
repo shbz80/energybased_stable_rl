@@ -8,6 +8,7 @@ from energybased_stable_rl.utilities.diff import jacobian # the jacobian API in 
 # from garage.torch.modules.mlp_module import MLPModule
 from energybased_stable_rl.policies.mlp_ps_module import MLPPSModule
 from garage.torch.modules import GaussianMLPBaseModule
+import time
 
 class GaussianPSMLPModule(GaussianMLPBaseModule):
     """GaussianPSMLPModule with a mean network and only variance parameter for parameter space
@@ -70,7 +71,7 @@ class GaussianPSMLPModule(GaussianMLPBaseModule):
                  min_std=1e-6,
                  max_std=None,
                  full_std=False,
-                 jac_update_rate = 10,
+                 jac_update_rate = 1,
                  jac_batch_size = 64,
                  std_parameterization='exp',
                  layer_normalization=False,
@@ -141,13 +142,17 @@ class GaussianPSMLPModule(GaussianMLPBaseModule):
 
 
         with torch.enable_grad():
+            st_time = time.time()
             mean = self._mean_module(*inputs)
+            print('Batch inference time:', time.time() - st_time)
             if self.full_std == True:
                 var_shape = list(mean.shape) + [self._action_dim]
                 var = torch.zeros(var_shape)
             else:
                 var_shape = mean.shape
                 var = torch.zeros(var_shape)
+
+            st_time = time.time()
             for n in range(mean.shape[0]):
                 if not(n % self.jac_update_rate):
                     Jl = []
@@ -163,7 +168,7 @@ class GaussianPSMLPModule(GaussianMLPBaseModule):
                 else:
                     Sigma = torch.eye(J.shape[1]) * std
                     var[n] = torch.diag(J @ Sigma @ J.t())
-
+            print('Batch Jacobian time:', time.time() - st_time)
         return mean, var
 
     def _get_action(self, *inputs):

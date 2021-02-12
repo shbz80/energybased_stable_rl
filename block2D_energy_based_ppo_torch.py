@@ -1,9 +1,10 @@
 import torch
+import torch.nn as nn
 import gym
 from garage import wrap_experiment
 from garage.envs import GymEnv
 from garage.experiment.deterministic import set_seed
-from garage.torch.algos import PPO
+from energybased_stable_rl.algos.ppo import PPO
 from energybased_stable_rl.policies.energy_based_control_policy import GaussianEnergyBasedPolicy
 from garage.sampler import LocalSampler, RaySampler
 from garage.sampler.default_worker import DefaultWorker
@@ -32,10 +33,16 @@ def block2D_energy_based_ppo(ctxt=None, seed=1):
     policy = GaussianEnergyBasedPolicy(env.spec,
                                        icnn_hidden_sizes=(8, 8),
                                        damper_hidden_sizes=(8, 8),
-                                       damper_full_mat=True,
-                                       init_std=0.5,
+                                       w_init_icnn=nn.init.xavier_uniform_,
+                                       w_init_damper=nn.init.xavier_uniform_,  # todo have to modfy damper code to change this
+                                       w_init_damper_const=None,
+                                       damper_full_mat=False,
+                                       init_std=.1,
+                                       min_std=1e-6,
+                                       max_std=1.0,
                                        full_std=False,
                                        jac_update_rate=1,
+                                       jac_batch_size=64,
                                        init_quad_pot=1.0,
                                        min_quad_pot=1e-3,
                                        max_quad_pot=1e1,
@@ -46,15 +53,15 @@ def block2D_energy_based_ppo(ctxt=None, seed=1):
     #     max_optimization_epochs=10,
     #     minibatch_size=64)
     policy_optimizer = OptimizerWrapper(
-        (torch.optim.Adam, dict(lr=2.5e-4*10.0)),
+        (torch.optim.Adam, dict(lr=2.5e-4)),
         policy,
         max_optimization_epochs=1,
         minibatch_size=64)
 
     value_function = LinearFeatureBaseline(env_spec=env.spec)
 
-    N = 100  # number of epochs
-    S = 15  # number of episodes in an epoch
+    N = 50  # number of epochs
+    S = 5  # number of episodes in an epoch
     algo = PPO(env_spec=env.spec,
                policy=policy,
                policy_optimizer=policy_optimizer,

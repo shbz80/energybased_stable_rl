@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import gym
 from garage import wrap_experiment
 from garage.envs import GymEnv
@@ -35,10 +36,13 @@ def block2D_psppo_torch_garage(ctxt=None, seed=1):
                                hidden_sizes=[16, 16],
                                hidden_nonlinearity=torch.tanh,
                                output_nonlinearity=None,
+                               # hidden_w_init=nn.init.xavier_uniform_,
+                               # hidden_b_init=nn.init.zeros_,
+                               # hidden_b_init=nn.init.xavier_uniform_,
                                init_std=1.,
                                full_std=True,
                                jac_update_rate=jac_update_rate,
-                               jac_batch_size = 64)
+                               jac_batch_size = 32)
     # policy_optimizer = OptimizerWrapper(
     #     (torch.optim.Adam, dict(lr=2.5e-4)),
     #     policy,
@@ -47,13 +51,13 @@ def block2D_psppo_torch_garage(ctxt=None, seed=1):
     policy_optimizer = OptimizerWrapper(
         (torch.optim.Adam, dict(lr=2.5e-4)),
         policy,
-        max_optimization_epochs=10,
+        max_optimization_epochs=5,
         minibatch_size=64)
 
     value_function = LinearFeatureBaseline(env_spec=env.spec)
 
     N = 100  # number of epochs
-    S = 10  # number of episodes in an epoch
+    S = 15  # number of episodes in an epoch
     algo = PPO(env_spec=env.spec,
                policy=policy,
                policy_optimizer=policy_optimizer,
@@ -67,7 +71,7 @@ def block2D_psppo_torch_garage(ctxt=None, seed=1):
     trainer.setup(algo, env, n_workers=S, sampler_cls=LocalSampler, worker_class=DefaultWorker)
     trainer.train(n_epochs=N, batch_size=T*S, plot=True, store_episodes=True)
 
-block2D_psppo_torch_garage(seed=1)
+block2D_psppo_torch_garage(seed=2)
 
 # block2D_psppo_torch_garage(seed=1)
 # block2D_psppo_torch_garage_1
@@ -123,3 +127,10 @@ block2D_psppo_torch_garage(seed=1)
 #                              jac_update_rate=jac_update_rate,
 #                              jac_batch_size=64)
 
+# block2D_psppo_torch_garage_3(seed=1)
+# policy_optimizer = OptimizerWrapper(
+#     (torch.optim.Adam, dict(lr=2.5e-4)),
+#     policy,
+#     max_optimization_epochs=10,
+#     minibatch_size=64)
+# S = 10  # number of episodes in an epoch
