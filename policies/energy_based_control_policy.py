@@ -21,7 +21,9 @@ class GaussianEnergyBasedPolicy(StochasticPSPolicy):
                  env_spec,
                  icnn_hidden_sizes=(32, 32),
                  damper_hidden_sizes=(32, 32),
-                 w_init=nn.init.xavier_uniform_,
+                 w_init_icnn=nn.init.xavier_uniform_,
+                 w_init_damper=nn.init.ones_,
+                 w_init_damper_const = 1.,
                  b_init=nn.init.zeros_,
                  icnn_hidden_nonlinearity=torch.relu,  # this has to a convex function e.g. relu
                  damper_hidden_nonlinearity=torch.tanh,
@@ -31,12 +33,14 @@ class GaussianEnergyBasedPolicy(StochasticPSPolicy):
                  min_std=1e-6,
                  max_std=None,
                  full_std=False,
-                 jac_update_rate=10,
+                 jac_update_rate=1,
+                 jac_batch_size=64,
                  std_parameterization='exp',
                  init_quad_pot=1.0,
                  min_quad_pot=1e-3,
                  max_quad_pot=1e1,
                  icnn_min_lr=1e-1,
+                 action_limit = 5.,
                  name='GaussianMLPPolicy'):
         super().__init__(env_spec, name)
         self._obs_dim = env_spec.observation_space.flat_dim
@@ -45,7 +49,9 @@ class GaussianEnergyBasedPolicy(StochasticPSPolicy):
             coord_dim = self._obs_dim//2,
             icnn_hidden_sizes=icnn_hidden_sizes,
             damper_hidden_sizes=damper_hidden_sizes,
-            w_init=w_init,
+            w_init_icnn=w_init_icnn,
+            w_init_damper=w_init_damper,
+            w_init_damper_const=w_init_damper_const,
             b_init=b_init,
             icnn_hidden_nonlinearity=icnn_hidden_nonlinearity,  # this has to a convex function e.g. relu
             damper_hidden_nonlinearity=damper_hidden_nonlinearity,
@@ -56,11 +62,14 @@ class GaussianEnergyBasedPolicy(StochasticPSPolicy):
             max_std=max_std,
             full_std=full_std,
             jac_update_rate=jac_update_rate,
+            jac_batch_size=jac_batch_size,
             std_parameterization=std_parameterization,
             init_quad_pot=init_quad_pot,
             min_quad_pot=min_quad_pot,
             max_quad_pot=max_quad_pot,
-            icnn_min_lr=icnn_min_lr)
+            icnn_min_lr=icnn_min_lr,
+            action_limit = action_limit)
+        self.selected_param_key = []
 
     def forward(self, observations):
         """Compute the action distributions from the observations.
@@ -79,5 +88,28 @@ class GaussianEnergyBasedPolicy(StochasticPSPolicy):
 
     def reset(self, do_resets=None):
         self._module._min_icnn()
+
+    def set_param_values(self, state_dict):
+        """Set the parameters to the policy.
+
+        This method is included to ensure consistency with TF policies.
+
+        Args:
+            state_dict (dict): State dictionary.
+
+        """
+        if isinstance(state_dict, dict):
+            self.load_state_dict(state_dict)
+
+        if isinstance(state_dict, tuple):
+            assert(isinstance(state_dict[0], dict))
+            self.load_state_dict(state_dict[0])
+            self.selected_param_key = state_dict[1]
+
+    def set_param_keys(self, param_keys):
+        self._module.param_keys = param_keys
+        named_params = dict([param for param in self.named_parameters()])
+        self._module.param_values = [[named_params[p_key] for p_key in param_key] for param_key in param_keys]
+
 
 
