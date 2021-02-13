@@ -9,7 +9,7 @@ from garage.torch import global_device
 from garage.torch.policies.policy import Policy
 
 
-class StochasticPSPolicy(Policy, abc.ABC):
+class StochasticEBPolicy(Policy, abc.ABC):
     """Abstract base class for torch stochastic policies."""
 
     def get_action(self, observation):
@@ -81,10 +81,13 @@ class StochasticPSPolicy(Policy, abc.ABC):
                 observations /= 255.0  # scale image
 
 
-            actions = self._module._get_action(observations).detach().cpu().numpy()
-            log_stds = np.ones_like(actions)*self._module._init_std.detach().numpy()
-            info = {'mean':actions,
-                    'log_std':log_stds}
+            u_pot, u_quad, u_damp = self._module._get_action(observations)
+            u_pot = u_pot.detach_().cpu().numpy()
+            u_quad = u_quad.detach().cpu().numpy()
+            u_damp = u_damp.detach().cpu().numpy()
+            actions = u_pot + u_quad + u_damp
+
+            info = {'u_pot':u_pot, 'u_quad':u_quad, 'u_damp':u_damp}
             return actions, info
 
     # pylint: disable=arguments-differ
