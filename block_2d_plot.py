@@ -13,16 +13,16 @@ base_filename = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/loca
 # exp_name = 'block2D_energy_based_ppo_3'
 # exp_name = 'block_2d_sac_torch'
 # exp_name = 'block2D_psppo_torch_garage_2'
-exp_name = 'cem_block2d_66'
+exp_name = 'cem_energybased_block2d_75'
 SUCCESS_DIST = 0.025
-plot_skip = 1
+plot_skip = 10
 plot_traj = True
 traj_skip = 1
 # GOAL = block2D.GOAL
 epoch_start = 0
-epoch_num = 2
+epoch_num = 50
 tm = range(T)
-sample_num = 12
+sample_num = 15
 plot_energy = False
 
 for ep in range(epoch_start,epoch_num):

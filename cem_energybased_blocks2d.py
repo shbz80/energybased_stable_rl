@@ -11,16 +11,16 @@ from garage import wrap_experiment
 from garage.envs import GymEnv
 from garage.experiment.deterministic import set_seed
 from energybased_stable_rl.algos.cem import CEM
-from garage.torch.policies import GaussianMLPPolicy
-from energybased_stable_rl.policies.energy_based_control_policy import GaussianEnergyBasedPolicy
+from energybased_stable_rl.policies.energy_based_control_policy import EnergyBasedPolicy
 from garage.np.baselines import LinearFeatureBaseline
 from garage.trainer import Trainer
 from energybased_stable_rl.envs.block2D import T
 from garage.sampler import LocalSampler, RaySampler
 from garage.sampler.default_worker import DefaultWorker
+import traceback
 
 @wrap_experiment(snapshot_mode='all')
-def cem_block2d(ctxt=None, seed=1):
+def cem_energybased_block2d(ctxt=None, seed=1):
     """Train CEM with Cartpole-v1 environment.
 
     Args:
@@ -34,28 +34,40 @@ def cem_block2d(ctxt=None, seed=1):
     # env = GymEnv('CartPole-v1')
     env = GymEnv('Block2D-v1', max_episode_length=T)
     trainer = Trainer(ctxt)
-    # policy = GaussianMLPPolicy(env.spec,
-    #                            hidden_sizes=[16, 16],
-    #                            hidden_nonlinearity=torch.tanh,
-    #                            output_nonlinearity=None,
-    #                            learn_std=False,
-    #                            init_std=1.)
-    init_std = 1.0
-    policy = GaussianEnergyBasedPolicy(env.spec,
-                                       icnn_hidden_sizes=(16, 16),
+
+    # log normal stuff
+    desired_lognormal_mean = torch.tensor(0.3)
+    desired_mean = desired_lognormal_mean
+    desired_std = 0.03
+    log_mean = torch.log((desired_mean ** 2) / torch.sqrt((desired_mean ** 2 + desired_std ** 2)))
+    log_std = torch.sqrt(torch.log(1 + (desired_std ** 2) / (desired_mean ** 2)))
+    init_log_std = log_std
+
+    init_std = 0.03
+
+    damp_min = torch.ones(2)*1e-2
+
+
+    policy = EnergyBasedPolicy(env.spec,
+                                       icnn_hidden_sizes=(16,16),
+                                       w_init_icnn_y=nn.init.xavier_uniform_,
+                                       b_init_icnn_y=nn.init.zeros_,
+                                       w_init_icnn_z=nn.init.constant_,
+                                       w_init_icnn_z_param=log_mean,
+                                       nonlinearity_icnn=torch.relu,
                                        damper_hidden_sizes=(8, 8),
-                                       w_init_icnn=nn.init.xavier_uniform_,
-                                       # w_init_damper=nn.init.zeros_,  # todo have to modfy damper code to change this
-                                       w_init_damper=nn.init.constant_, # all network init settings moved to the module file todo
-                                       w_init_damper_const = .5,
-                                       b_init=nn.init.zeros_,
-                                       init_std=init_std,
-                                       damper_full_mat=True,
+                                       w_init_damper_offdiag=nn.init.xavier_uniform_,
+                                       b_init_damper_offdiag=nn.init.zeros_,
+                                       w_init_damper_diag=nn.init.xavier_uniform_,
+                                       w_init_damper_diag_param=log_mean,
+                                       b_init_damper_diag=nn.init.zeros_,
+                                       hidden_nonlinearity_damper=torch.tanh,
+                                       full_mat_damper=True,
+                                       damp_min = damp_min,
                                        init_quad_pot=1.0,
                                        min_quad_pot=1e-3,
                                        max_quad_pot=1e1,
-                                       icnn_min_lr=1e-1,
-                                       action_limit = 5.)       # action limit stability not valid todo
+                                       icnn_min_lr=1e-4,)
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
 
@@ -64,16 +76,20 @@ def cem_block2d(ctxt=None, seed=1):
     algo = CEM(env_spec=env.spec,
                policy=policy,
                init_std=init_std,
+               init_log_std = init_log_std,
                baseline=baseline,
                best_frac=0.2,
+               action_lt=5.0,
                n_samples=n_samples)
 
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
 
-    trainer.train(n_epochs=50, batch_size=T, plot=False, store_episodes=True)
+    trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
 
-
-cem_block2d(seed=1)
+try:
+    cem_energybased_block2d(seed=2)
+except Exception:
+    traceback.print_exc()
 
 # cem_block2d_20(seed=1)
 # policy = GaussianMLPPolicy(env.spec,
