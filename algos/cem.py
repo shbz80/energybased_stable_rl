@@ -3,12 +3,13 @@ import collections
 
 from dowel import logger, tabular
 import numpy as np
-
+import torch
 from garage import EpisodeBatch, log_performance
 from garage.np import paths_to_tensors
 from garage.np.algos.rl_algorithm import RLAlgorithm
 from garage.sampler import RaySampler, LocalSampler
 from energybased_stable_rl.utilities.param_exp import sample_params, cem_init_std, cem_stat_compute
+from garage.torch.optimizers import OptimizerWrapper
 
 class CEM(RLAlgorithm):
     """Cross Entropy Method.
@@ -47,7 +48,8 @@ class CEM(RLAlgorithm):
                  best_frac=0.05,
                  action_lt=10.0,
                  extra_std=0.,
-                 extra_decay_time=100):
+                 extra_decay_time=100,
+                 init_policy=None):
         self.policy = policy
         self.max_episode_length = env_spec.max_episode_length
 
@@ -61,6 +63,7 @@ class CEM(RLAlgorithm):
         self._extra_decay_time = extra_decay_time
         self._episode_reward_mean = collections.deque(maxlen=100)
         self._env_spec = env_spec
+        self._coord_dim = env_spec.observation_space.flat_dim // 2
         self._discount = discount
         self._n_samples = n_samples
 
@@ -72,6 +75,12 @@ class CEM(RLAlgorithm):
         self._n_best = None
         self._n_params = None
         self._action_lt = action_lt
+        self._init_policy = init_policy
+        self._icnn_optimizer = OptimizerWrapper(
+                                                torch.optim.Adam,
+                                                policy._module._icnn_module,
+                                                max_optimization_epochs=1,
+                                                minibatch_size=64)
 
     def train(self, trainer):
         """Initialize variables and start training.
@@ -101,30 +110,76 @@ class CEM(RLAlgorithm):
         # start actual training
         last_return = None
 
+        epoch_itr = 0
         for _ in trainer.step_epochs():
             trainer.step_path = []
-            for _ in range(self._n_samples):
-                action0 = self._action_lt*2.0
-                i=0
-                while np.any(np.abs(action0) > self._action_lt):
-                    self._cur_params = sample_params(self._cur_mean, self._cur_std, trainer.step_itr)
-                    self.policy.set_param_values(self._cur_params)
-                    self.policy._module.min_icnn()
-                    obs = trainer._sampler._workers[0].start_episode()
-                    action0, _ = self.policy.get_action(obs)
-                    i=i+1
-                    print('CEM init trials:',i)
-                self._all_params.append(self._cur_params.copy())
 
-                step_path = trainer.obtain_samples(trainer.step_itr)
-                last_return = self.train_once(trainer.step_itr,
-                                              step_path)
-                trainer.step_itr += 1
-                trainer.step_path.append(step_path[0])
+            if epoch_itr==0:
+                for _ in range(self._n_samples):
+                    step_path = trainer.obtain_samples(trainer.step_itr, agent_update=self._init_policy)
+                    trainer.step_itr += 1
+                    trainer.step_path.append(step_path[0])
+                # self.train_init(trainer.step_itr, trainer.step_path) #todo
+                trainer._sampler._workers[0].agent = self.policy
+                print('Init train done')
+                print(self.policy._module._icnn_module.state_dict())
+            else:
+                for _ in range(self._n_samples):
+                    action0 = self._action_lt * 2.0
+                    i = 0
+                    while np.any(np.abs(action0) > self._action_lt):
+                        print('action0', action0)
+                        # self._cur_params = self._cur_mean       # todo
+                        self._cur_params = sample_params(self._cur_mean, self._cur_std, trainer.step_itr)
+                        self.policy.set_param_values(self._cur_params)
+                        # self.policy._module.min_icnn() #todo
+                        obs = trainer._sampler._workers[0].start_episode()
+                        action0, _ = self.policy.get_action(obs)
+                        i = i + 1
+                        print('CEM init trials:', i)
+                    self._all_params.append(self._cur_params.copy())
+
+                    step_path = trainer.obtain_samples(trainer.step_itr)
+                    last_return = self.train_once(trainer.step_itr,
+                                                  step_path)
+                    trainer.step_itr += 1
+                    trainer.step_path.append(step_path[0])
+
+            epoch_itr = epoch_itr +1
 
 
 
         return last_return
+
+    def train_init(self, itr, paths):
+        """Perform one step of policy optimization given one batch of samples.
+        """
+        # -- Stage: Calculate baseline
+        print('Train begin')
+        if hasattr(self._baseline, 'predict_n'):
+            baseline_predictions = self._baseline.predict_n(paths)
+        else:
+            baseline_predictions = [
+                self._baseline.predict(path) for path in paths
+            ]
+
+        # -- Stage: Pre-process samples based on collected paths
+        samples_data = paths_to_tensors(paths, self.max_episode_length,
+                                        baseline_predictions, self._discount)
+
+        actions = torch.from_numpy(samples_data['agent_infos']['u_pot'].reshape(-1,self._coord_dim)).float()
+        pos = torch.from_numpy(samples_data['observations'].reshape(-1, self._coord_dim*2)[:,:self._coord_dim]).float()
+        icnn_module = self.policy._module._icnn_module
+
+        with torch.enable_grad():
+            for dataset in self._icnn_optimizer.get_minibatch(actions, pos):
+                (actions_, pos_) = dataset
+                self._icnn_optimizer.zero_grad()
+                actions_pred_ = - icnn_module.grad_x(pos_)
+                loss = torch.sum(torch.square(actions_pred_ - actions_),dim=1).mean()
+                loss.backward()
+                self._icnn_optimizer.step()
+
 
     def train_once(self, itr, paths):
         """Perform one step of policy optimization given one batch of samples.
