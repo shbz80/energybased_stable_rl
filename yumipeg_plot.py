@@ -6,15 +6,15 @@ import numpy as np
 import torch
 from energybased_stable_rl.envs.yumipegcart import T
 
-base_filename = '/home/shahbaz/Software/garage36/energybased_sac/data/local/experiment'
-exp_name = 'yumipeg_ppo_garage_3'
+base_filename = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment'
+exp_name = 'cem_energybased_yumi_47'
 
 SUCCESS_DIST = 0.004
-plot_skip = 20
-plot_traj = False
-traj_skip = 3
+plot_skip = 1
+plot_traj = True
+traj_skip = 1
 epoch_start = 0
-epoch_num = 100
+epoch_num = 2
 T = 200
 tm = range(T)
 plot_energy = False
@@ -108,31 +108,31 @@ for i in range(epoch_start, epoch_num):
     for s in range(sample_num):
         pos_norm = np.linalg.norm(epoch[s]['observations'][:, :3], axis=1)
         success_mat[i, s] = np.min(pos_norm)<SUCCESS_DIST
-        state_dist_all[i][s] = np.linalg.norm(epoch[s]['observations'][:, :3], axis=1).reshape(-1)
-        state_dist_last[i][s] = np.linalg.norm(epoch[s]['observations'][:, :3], axis=1)[-1]
+        # state_dist_all[i][s] = np.linalg.norm(epoch[s]['observations'][:, :3], axis=1).reshape(-1)
+        # state_dist_last[i][s] = np.linalg.norm(epoch[s]['observations'][:, :3], axis=1)[-1]
 
-itr_state_dist = 10
-state_dist_all = state_dist_all[:itr_state_dist,:,:].reshape(-1)
-state_dist_last = state_dist_last[:itr_state_dist,:].reshape(-1)
+# itr_state_dist = 10
+# state_dist_all = state_dist_all[:itr_state_dist,:,:].reshape(-1)
+# state_dist_last = state_dist_last[:itr_state_dist,:].reshape(-1)
 
-fig1 = plt.figure()
-ax1 = fig1.add_subplot(1, 1, 1)
-# ax1.set_title(r'\textbf{(a)}')
-# ax1.set_xlabel(r'Iteration')
-# ax1.set_ylabel(r'Reward')
-# ax1.set_xticks([0.0,0.4,0.8])
-# ax1.set_ylim(-1.7e4,-0.2e4)
-# data = [dist_ours, dist_vices, last_dist_ours, last_dist_vices]
-data = [state_dist_all, state_dist_last]
-# ax1.boxplot(data, showfliers=False, whis=(0,100),vert=False)
-# bp = ax1.boxplot(data, patch_artist = False, showfliers=False, whis=(0,100),vert=False)
-bp = ax1.boxplot(data, patch_artist = False, showfliers=False, vert=False)
-for median in bp['medians']:
-    median.set(color ='blue',
-               linewidth = 1)
-ax1.set_yticklabels(['All pos','Final pos'])
-ax1.set_xlabel('m',labelpad=1)
-# plt.subplots_adjust(left=0.429, bottom=0.2, right=.99, top=0.98, wspace=0.5, hspace=0.7)
+# fig1 = plt.figure()
+# ax1 = fig1.add_subplot(1, 1, 1)
+# # ax1.set_title(r'\textbf{(a)}')
+# # ax1.set_xlabel(r'Iteration')
+# # ax1.set_ylabel(r'Reward')
+# # ax1.set_xticks([0.0,0.4,0.8])
+# # ax1.set_ylim(-1.7e4,-0.2e4)
+# # data = [dist_ours, dist_vices, last_dist_ours, last_dist_vices]
+# data = [state_dist_all, state_dist_last]
+# # ax1.boxplot(data, showfliers=False, whis=(0,100),vert=False)
+# # bp = ax1.boxplot(data, patch_artist = False, showfliers=False, whis=(0,100),vert=False)
+# bp = ax1.boxplot(data, patch_artist = False, showfliers=False, vert=False)
+# for median in bp['medians']:
+#     median.set(color ='blue',
+#                linewidth = 1)
+# ax1.set_yticklabels(['All pos','Final pos'])
+# ax1.set_xlabel('m',labelpad=1)
+# # plt.subplots_adjust(left=0.429, bottom=0.2, right=.99, top=0.98, wspace=0.5, hspace=0.7)
 
 
 

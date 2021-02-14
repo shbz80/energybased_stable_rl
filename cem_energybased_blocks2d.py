@@ -87,7 +87,7 @@ def cem_energybased_block2d(ctxt=None, seed=1):
     trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
 
 try:
-    cem_energybased_block2d(seed=2)
+    cem_energybased_block2d(seed=1)
 except Exception:
     traceback.print_exc()
 
