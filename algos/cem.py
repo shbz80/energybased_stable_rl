@@ -49,7 +49,8 @@ class CEM(RLAlgorithm):
                  action_lt=10.0,
                  extra_std=0.,
                  extra_decay_time=100,
-                 init_policy=None):
+                 init_policy=None,
+                 min_icnn=False):
         self.policy = policy
         self.max_episode_length = env_spec.max_episode_length
 
@@ -66,6 +67,7 @@ class CEM(RLAlgorithm):
         self._coord_dim = env_spec.observation_space.flat_dim // 2
         self._discount = discount
         self._n_samples = n_samples
+        self._min_icnn = min_icnn
 
         self._cur_std = {}
         self._cur_mean = None
@@ -75,8 +77,10 @@ class CEM(RLAlgorithm):
         self._n_best = None
         self._n_params = None
         self._action_lt = action_lt
-        self._init_policy = init_policy
-        self._icnn_optimizer = OptimizerWrapper(
+
+        if init_policy is not None:
+            self._init_policy = init_policy
+            self._icnn_optimizer = OptimizerWrapper(
                                                 torch.optim.Adam,
                                                 policy._module._icnn_module,
                                                 max_optimization_epochs=1,
@@ -114,12 +118,12 @@ class CEM(RLAlgorithm):
         for _ in trainer.step_epochs():
             trainer.step_path = []
 
-            if epoch_itr==0:
+            if epoch_itr==0 and hasattr(self, '_init_policy'):
                 for _ in range(self._n_samples):
                     step_path = trainer.obtain_samples(trainer.step_itr, agent_update=self._init_policy)
                     trainer.step_itr += 1
                     trainer.step_path.append(step_path[0])
-                # self.train_init(trainer.step_itr, trainer.step_path) #todo
+                self.train_init(trainer.step_itr, trainer.step_path)
                 trainer._sampler._workers[0].agent = self.policy
                 print('Init train done')
                 print(self.policy._module._icnn_module.state_dict())
@@ -132,7 +136,8 @@ class CEM(RLAlgorithm):
                         # self._cur_params = self._cur_mean       # todo
                         self._cur_params = sample_params(self._cur_mean, self._cur_std, trainer.step_itr)
                         self.policy.set_param_values(self._cur_params)
-                        # self.policy._module.min_icnn() #todo
+                        if self._min_icnn:
+                            self.policy._module.min_icnn()
                         obs = trainer._sampler._workers[0].start_episode()
                         action0, _ = self.policy.get_action(obs)
                         i = i + 1
