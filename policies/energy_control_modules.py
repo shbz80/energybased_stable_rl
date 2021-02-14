@@ -33,14 +33,14 @@ class ICNN(nn.Module):
 
         self._y_layers = nn.ModuleList()
         for size in hidden_sizes:
-            linear_layer = nn.Linear(input_dim, size)
+            linear_layer = nn.Linear(input_dim, size, bias=False)       #todo
             w_init_y(linear_layer.weight)
-            b_init_y(linear_layer.bias)
+            # b_init_y(linear_layer.bias)
             self._y_layers.append(linear_layer)
 
-        linear_layer = nn.Linear(input_dim, 1)
+        linear_layer = nn.Linear(input_dim, 1, bias=False)
         w_init_y(linear_layer.weight)
-        b_init_y(linear_layer.bias)
+        # b_init_y(linear_layer.bias)
         self._y_layers.append(linear_layer)
 
         self._z_layers = nn.ModuleList()
