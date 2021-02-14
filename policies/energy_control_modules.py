@@ -4,14 +4,25 @@ import torch
 import torch.nn as nn
 
 class PositiveLinear(nn.Module):
-    def __init__(self, in_features, out_features):
+    def __init__(self, in_features, out_features, type='log'):
         super(PositiveLinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
-        self.log_weight = nn.Parameter(torch.Tensor(out_features, in_features))
+        self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
+        if type=='log' or type=='relu':
+            self.type = type
+        else:
+            print('Incorrect type')
+            AssertionError
+
+    def get_weight(self):
+        if self.type == 'log':
+            return self.weight.exp()
+        else:
+            return torch.relu(self.weight) + torch.tensor(1e-6)
 
     def forward(self, input):
-        return nn.functional.linear(input, self.log_weight.exp(),bias=torch.zeros(self.out_features))       # todo try with bias = None
+       return nn.functional.linear(input, self.get_weight(), bias=torch.zeros(self.out_features))
 
 
 class ICNN(nn.Module):
@@ -21,9 +32,12 @@ class ICNN(nn.Module):
                  hidden_sizes,
                  w_init_y = nn.init.xavier_uniform_,
                  b_init_y = nn.init.zeros_,
+                 w_init_y_param=0.1,
                  w_init_z = nn.init.constant_,
                  w_init_z_param = 0.1,
                  nonlinearity=torch.relu,
+                 icnn_bias=False,
+                 positive_type='log'
                  ):
         super(ICNN, self).__init__()
 
@@ -33,26 +47,38 @@ class ICNN(nn.Module):
 
         self._y_layers = nn.ModuleList()
         for size in hidden_sizes:
-            linear_layer = nn.Linear(input_dim, size, bias=False)       #todo
-            w_init_y(linear_layer.weight)
-            # b_init_y(linear_layer.bias)
+            linear_layer = nn.Linear(input_dim, size, bias=icnn_bias)
+            if w_init_y_param is not None:
+                w_init_y(linear_layer.weight, w_init_y_param)
+            else:
+                w_init_y(linear_layer.weight)
+            if icnn_bias: b_init_y(linear_layer.bias)
             self._y_layers.append(linear_layer)
 
-        linear_layer = nn.Linear(input_dim, 1, bias=False)
-        w_init_y(linear_layer.weight)
-        # b_init_y(linear_layer.bias)
+        linear_layer = nn.Linear(input_dim, 1, bias=icnn_bias)
+        if w_init_y_param is not None:
+            w_init_y(linear_layer.weight, w_init_y_param)
+        else:
+            w_init_y(linear_layer.weight)
+        if icnn_bias: b_init_y(linear_layer.bias)
         self._y_layers.append(linear_layer)
 
         self._z_layers = nn.ModuleList()
         prev_size = hidden_sizes[0]
         for size in hidden_sizes[1:]:
-            positive_linear_layer = PositiveLinear(prev_size, size)
-            w_init_z(positive_linear_layer.log_weight, w_init_z_param)
+            positive_linear_layer = PositiveLinear(prev_size, size, type=positive_type)
+            if w_init_z_param is not None:
+                w_init_z(positive_linear_layer.weight, w_init_z_param)
+            else:
+                w_init_z(positive_linear_layer.weight)
             self._z_layers.append(positive_linear_layer)
             prev_size = size
 
-        positive_linear_layer = PositiveLinear(prev_size, 1)
-        w_init_z(positive_linear_layer.log_weight, w_init_z_param)
+        positive_linear_layer = PositiveLinear(prev_size, 1, type=positive_type)
+        if w_init_z_param is not None:
+            w_init_z(positive_linear_layer.weight, w_init_z_param)
+        else:
+            w_init_z(positive_linear_layer.weight)
         self._z_layers.append(positive_linear_layer)
 
         self.nonlinearity = NonLinearity(nonlinearity)      # todo try without NonLinearity
@@ -90,7 +116,7 @@ class ICNN(nn.Module):
             z = self._y_layers[i + 1](z0) + self._z_layers[i](z)
             dz1r_dz = self.relu_grad(z)
             z = self.nonlinearity(z)
-            dzz1_dx = torch.matmul(torch.exp(self._z_layers[i].log_weight), dz1r_dx)
+            dzz1_dx = torch.matmul(self._z_layers[i].get_weight(), dz1r_dx)
             dzy1_dx = self._y_layers[i + 1].weight
             dzy1_dx_plus_dzz1_dx = dzy1_dx + dzz1_dx
             dz1r_dz_ = dz1r_dz.unsqueeze(2).repeat(1, 1, dzy1_dx_plus_dzz1_dx.shape[2])

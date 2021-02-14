@@ -18,14 +18,16 @@ class EnergyBasedControlModule(nn.Module):
                  icnn_hidden_sizes=(32, 32),
                  w_init_icnn_y=nn.init.xavier_uniform_,
                  b_init_icnn_y=nn.init.zeros_,
+                 w_init_icnn_y_param=0.1,
                  w_init_icnn_z=nn.init.constant_,
                  w_init_icnn_z_param=0.1,
+                 icnn_bias=False,
+                 positive_type='log',
                  nonlinearity_icnn=torch.relu,
                  damper_hidden_sizes=(32, 32),
                  w_init_damper_offdiag=nn.init.xavier_uniform_,
                  b_init_damper_offdiag=nn.init.zeros_,
                  w_init_damper_diag=nn.init.xavier_uniform_,
-                 w_init_damper_diag_param=0.1,
                  b_init_damper_diag=nn.init.zeros_,
                  hidden_nonlinearity_damper=torch.tanh,
                  full_mat_damper=True,
@@ -62,9 +64,12 @@ class EnergyBasedControlModule(nn.Module):
             hidden_sizes = icnn_hidden_sizes,
             w_init_y=w_init_icnn_y,
             b_init_y=b_init_icnn_y,
+            w_init_y_param=w_init_icnn_y_param,
             w_init_z=w_init_icnn_z,
             w_init_z_param=w_init_icnn_z_param,
             nonlinearity=nonlinearity_icnn,
+            icnn_bias=icnn_bias,
+            positive_type=positive_type
         )
 
         self._damping_module = Damping(
@@ -73,7 +78,6 @@ class EnergyBasedControlModule(nn.Module):
             w_init_offdiag=w_init_damper_offdiag,
             b_init_offdiag=b_init_damper_offdiag,
             w_init_diag=w_init_damper_diag,
-            # w_init_diag_param=w_init_damper_diag_param,       #todo
             b_init_diag=b_init_damper_diag,
             hidden_nonlinearity=hidden_nonlinearity_damper,
             full_mat=full_mat_damper,
