@@ -80,7 +80,7 @@ class EnergyBasedControlModule(nn.Module):
             damp_min=damp_min
         )
 
-        self.curr_x_min = torch.rand(self._coord_dim)
+        self.curr_x_min = torch.zeros(self._coord_dim)
         self.curr_f_min = 0.
         self._icnn_min_lr = icnn_min_lr
         self.u_pot = None
@@ -163,17 +163,19 @@ class EnergyBasedControlModule(nn.Module):
         if torch.any((self.u_pot>10.0)):
             print('Warning: large u_pot', self.u_pot)
 
-        self.u_quad = -torch.diag(quad_pot) @ x.t()
+        # self.u_pot = - 5.0 * state[:,:self._coord_dim]
+
+        self.u_quad = -torch.diag(quad_pot) @ state[:,:self._coord_dim].t()
         self.u_quad.t_()
         if torch.any(self.u_quad > 5.0):
             print('Warning: large u_quad', self.u_quad)
 
-        self.u_damp = -self._damping_module(x_dot)   # todo
+        self.u_damp = -self._damping_module(x_dot)
         # self.u_damp = -x_dot*2.0
         if torch.any(torch.isnan(self.u_damp)):
             print('nan in u_damp')
             assert (False)
-        if torch.any((self.u_damp>5.0)):
+        if torch.any((self.u_damp>10.0)):
             print('Warning: large u_damp', self.u_damp)
 
         return self.u_pot, self.u_quad, self.u_damp
