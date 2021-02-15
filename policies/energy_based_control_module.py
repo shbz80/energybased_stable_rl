@@ -47,16 +47,16 @@ class EnergyBasedControlModule(nn.Module):
         self.icnn_min_lr = 1e-1,
 
         assert(min_quad_pot>0 and max_quad_pot>0)
-        assert(init_quad_pot>min_quad_pot and max_quad_pot>init_quad_pot)
-        init_quad_pot_param = torch.ones(coord_dim)*torch.Tensor([init_quad_pot]).log()
+        assert(init_quad_pot>=min_quad_pot and max_quad_pot>=init_quad_pot)
+        init_quad_pot_param = torch.ones(coord_dim)*torch.Tensor([init_quad_pot])
         self._quad_pot_param = torch.nn.Parameter(init_quad_pot_param)
 
         self._min_quad_pot_param = self._max_quad_pot_param = None
         if min_quad_pot is not None:
-            self._min_quad_pot_param = torch.Tensor([min_quad_pot]).log()
+            self._min_quad_pot_param = torch.Tensor([min_quad_pot])
             self.register_buffer('min_quad_pot_param', self._min_quad_pot_param)
         if max_quad_pot is not None:
-            self._max_quad_pot_param = torch.Tensor([max_quad_pot]).log()
+            self._max_quad_pot_param = torch.Tensor([max_quad_pot])
             self.register_buffer('max_quad_pot_param', self._max_quad_pot_param)
 
         self._icnn_module = ICNN(
@@ -153,7 +153,7 @@ class EnergyBasedControlModule(nn.Module):
         if torch.any(torch.isnan(quad_pot)):
             print('nan in quad_pot')
             assert(False)
-        quad_pot = quad_pot.exp()
+        # quad_pot = quad_pot.exp()     #todo
 
 
         with torch.enable_grad():
@@ -161,25 +161,27 @@ class EnergyBasedControlModule(nn.Module):
             psi = self._icnn_module(x)
             self.u_pot = - jacobian_batch(psi, x, create_graph=False).detach()
         # self.u_pot = -self._icnn_module.grad_x(x)
+        # self.u_pot = torch.zeros(self._coord_dim).view(1,-1)        #todo
         if torch.any(torch.isnan(self.u_pot)):
             print('nan in u_pot')
             assert (False)
-        if torch.any((self.u_pot>10.0)):
+        if torch.any((torch.abs(self.u_pot)>10.0)):
             print('Warning: large u_pot', self.u_pot)
 
         # self.u_pot = - 5.0 * state[:,:self._coord_dim]
 
         self.u_quad = -torch.diag(quad_pot) @ state[:,:self._coord_dim].t()
         self.u_quad.t_()
-        if torch.any(self.u_quad > 5.0):
+        # self.u_quad = torch.zeros(self._coord_dim).view(1,-1)        #todo
+        if torch.any(torch.abs(self.u_quad) > 5.0):
             print('Warning: large u_quad', self.u_quad)
 
         self.u_damp = -self._damping_module(x_dot)
-        # self.u_damp = -x_dot*2.0
+        # self.u_damp = torch.zeros(self._coord_dim).view(1,-1)        #todo
         if torch.any(torch.isnan(self.u_damp)):
             print('nan in u_damp')
             assert (False)
-        if torch.any((self.u_damp>10.0)):
+        if torch.any((torch.abs(self.u_damp)>10.0)):
             print('Warning: large u_damp', self.u_damp)
 
         return self.u_pot, self.u_quad, self.u_damp
