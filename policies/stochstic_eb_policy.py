@@ -82,7 +82,7 @@ class StochasticEBPolicy(Policy, abc.ABC):
 
 
             u_pot, u_quad, u_damp = self._module._get_action(observations)
-            u_pot = u_pot.detach_().cpu().numpy()
+            u_pot = u_pot.detach().cpu().numpy()
             u_quad = u_quad.detach().cpu().numpy()
             u_damp = u_damp.detach().cpu().numpy()
             actions = u_pot + u_quad + u_damp

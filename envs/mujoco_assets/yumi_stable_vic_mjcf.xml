@@ -101,7 +101,7 @@
                                                     <site name="leg_top" pos="0 -0.15 0" size="0.005" /> -->
 
                                                     <body name="ball" pos="0 0 0">
-                                                        <geom name="ball_geom" rgba="0.6 0.8 0.6 1" type="cylinder" group="1" fromto="0 0 0 0 0 0.08" size="0.023" density="2000" contype="1" conaffinity="1" />
+                                                        <geom name="ball_geom" rgba="0.6 0.8 0.6 1" type="cylinder" group="1" fromto="0 0 0 0 0 0.08" size="0.0233" density="2000" contype="1" conaffinity="1" />
                                                     </body>
                                                 </body>
                                             </body>

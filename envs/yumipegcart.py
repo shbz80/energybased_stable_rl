@@ -21,11 +21,11 @@ GOAL_CART = [ 0.46473501,  0.10293446,  0.10217953, -0.00858317,  0.69395054,  0
 
 # list_init_qpos = pickle.load(open("rnd_qpos_init.p", "rb")) # SIGMA_JT = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])*4.
 # INIT 1
-INIT = np.array([-1.14, -1.21, 0.965, 0.728, 1.97, 1.49, 0.]) #todo
+# INIT = np.array([-1.14, -1.21, 0.965, 0.728, 1.97, 1.49, 0.]) #todo
 # INIT = list_init_qpos[4]
 # INIT = np.array([-1.38930236, -0.85174226, 1.11545407,  0.57388455,  1.81274445,  1.49625972, 0.09324886]) # nf rnd init 1 of 3
-# INIT = np.array([-1.07308613, -1.33489273,  1.10659514,  0.77592789,  2.00738834,  1.65108292, 0.0409894])  # nf rnd init 2 of 3
-# INIT = np.array([-0.91912945, -0.93873615,  1.03494441,  0.56895099,  1.69821677,  1.67984028, -0.06353955]) # nf rnd init 3 of 3
+# INIT = np.array([-1.07308613, -1.33489273,  1.10659514,  0.77592789,  2.00738834,  1.65108292, 0.0409894])  # nf rnd init 2 of 3 todo this starts inside the block
+INIT = np.array([-0.91912945, -0.93873615,  1.03494441,  0.56895099,  1.69821677,  1.67984028, -0.06353955]) # nf rnd init 3 of 3
 
 
 # obs in operational space
@@ -43,7 +43,7 @@ D_rot = np.eye(3)*4
 SIGMA = np.array([0.05,0.05,0.01])
 SIGMA_JT = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])*2. #todo
 rand_init = False
-rand_joint_space = True
+rand_joint_space = False
 
 kin_params_yumi = {}
 kin_params_yumi['urdf'] = '/home/shahbaz/Software/yumi_kinematics/yumikin/models/yumi_ABB_left.urdf'

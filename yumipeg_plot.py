@@ -7,14 +7,16 @@ import torch
 from energybased_stable_rl.envs.yumipegcart import T
 
 base_filename = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment'
-exp_name = 'cem_energybased_yumi_47'
+# exp_name = 'cem_energybased_yumi_2'
+# exp_name = 'cem_energybased_yumi_1'
+exp_name = 'cem_nf_yumi'
 
 SUCCESS_DIST = 0.004
-plot_skip = 1
+plot_skip = 3
 plot_traj = True
-traj_skip = 1
+traj_skip = 5
 epoch_start = 0
-epoch_num = 2
+epoch_num = 25
 T = 200
 tm = range(T)
 plot_energy = False

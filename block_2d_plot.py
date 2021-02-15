@@ -8,19 +8,22 @@ from energybased_stable_rl.envs.block2D import T
 
 
 base_filename = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment'
+# base_filename = '/media/shahbaz/My Passport/nfdata/data/local/experiment/'
 # baseline
 # exp_name = 'block2D_ppo_torch_garage'
 # exp_name = 'block2D_energy_based_ppo_3'
 # exp_name = 'block_2d_sac_torch'
 # exp_name = 'block2D_psppo_torch_garage_2'
-exp_name = 'cem_energybased_block2d'
+# exp_name = 'cem_energybased_block2d_3'
+exp_name = 'cem_nf_block2d_4'
+# exp_name = 'block2d_nfppo_garage_e_3'
 SUCCESS_DIST = 0.025
-plot_skip = 20
+plot_skip = 1
 plot_traj = True
 traj_skip = 1
 # GOAL = block2D.GOAL
 epoch_start = 0
-epoch_num = 50
+epoch_num = 2
 tm = range(T)
 sample_num = 15
 plot_energy = False

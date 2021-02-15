@@ -45,7 +45,7 @@ def cem_energybased_block2d(ctxt=None, seed=1):
     init_log_std = log_std
 
 
-    init_std = 0.1
+    init_std = 0.05
     init_log_std = 1.0
 
     coord_dim = env.spec.observation_space.flat_dim // 2
@@ -54,13 +54,12 @@ def cem_energybased_block2d(ctxt=None, seed=1):
 
     icnn_bias = False
 
-    # init_policy = None
     init_policy = EnergyBasedInitPolicy(env.spec,
-                                        S_param=torch.ones(coord_dim) * 2.0,
-                                        D_param=torch.ones(coord_dim) * 1.0,
+                                        S_param=torch.ones(coord_dim) * 4.0,
+                                        D_param=torch.ones(coord_dim) * 2.0,
                                         std=2.0
                                         )
-
+    init_policy = None
     policy = EnergyBasedPolicy(env.spec,
                                        icnn_hidden_sizes=(16,16),
                                        w_init_icnn_y=nn.init.xavier_uniform_,
@@ -80,9 +79,12 @@ def cem_energybased_block2d(ctxt=None, seed=1):
                                        hidden_nonlinearity_damper=torch.tanh,
                                        full_mat_damper=True,
                                        damp_min = damp_min,
-                                       init_quad_pot=1.0,
+                                       init_quad_pot=0.1,
                                        min_quad_pot=1e-3,
                                        max_quad_pot=0.5e1,
+                                       # init_quad_pot=1e-3,
+                                       # min_quad_pot=1e-3,
+                                       # max_quad_pot=1e-3,
                                        icnn_min_lr=1e-4,)
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -98,7 +100,7 @@ def cem_energybased_block2d(ctxt=None, seed=1):
                action_lt=5.0,
                n_samples=n_samples,
                init_policy=init_policy,     # pass None if policy init is not required
-               min_icnn=icnn_bias)
+               min_icnn=False)
 
     # n_workers should be 1
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
@@ -110,21 +112,23 @@ try:
 except Exception:
     traceback.print_exc()
 
-# cem_energybased_block2d_14(seed=1)
-# no icnn z bias, no icnn min, relu weight for icnn, non init policy
-# init_std = 0.1
-# init_log_std = init_std
+# cem_energybased_block2d(seed=1)
+# only icnn no quad
+# init_std = 0.05
+# init_log_std = 1.0
 # coord_dim = env.spec.observation_space.flat_dim // 2
-# damp_min = torch.ones(coord_dim) * 1e-2
+# damp_min = torch.ones(coord_dim) * 1e-3
+# icnn_bias = False
 # init_policy = None
 # policy = EnergyBasedPolicy(env.spec,
 #                                    icnn_hidden_sizes=(16,16),
 #                                    w_init_icnn_y=nn.init.xavier_uniform_,
 #                                    b_init_icnn_y=nn.init.zeros_,
+#                                     w_init_icnn_y_param=None,  # pass None if...
 #                                    # w_init_icnn_z=nn.init.constant_,
 #                                     w_init_icnn_z=nn.init.xavier_uniform_,
 #                                    w_init_icnn_z_param=None,        # pass None if...
-#                                    icnn_bias = False,
+#                                    icnn_bias = icnn_bias,
 #                                    positive_type = 'relu',
 #                                    nonlinearity_icnn=torch.relu,
 #                                    damper_hidden_sizes=(8, 8),
@@ -135,9 +139,12 @@ except Exception:
 #                                    hidden_nonlinearity_damper=torch.tanh,
 #                                    full_mat_damper=True,
 #                                    damp_min = damp_min,
-#                                    init_quad_pot=1.0,
+#                                    init_quad_pot=1.,
 #                                    min_quad_pot=1e-3,
 #                                    max_quad_pot=0.5e1,
+#                                    # init_quad_pot=1e-3,
+#                                    # min_quad_pot=1e-3,
+#                                    # max_quad_pot=1e-3,
 #                                    icnn_min_lr=1e-4,)
 # baseline = LinearFeatureBaseline(env_spec=env.spec)
 # n_samples = 15
@@ -157,7 +164,7 @@ except Exception:
 # OFFSET = np.array([0.4, -0.6])
 # OFFSET_1 = np.array([0, 0])         # NFPPPO fixed init
 # GOAL = np.array([0, 0.5])+OFFSET
-# INIT = np.array([-0.3, 0.8])+OFFSET+OFFSET_1
+# INIT = np.array([-0.3, 0.8])+OFFSET+OFFSET_1      pos 1
 # T = 200
 # POS_SCALE = 1
 # VEL_SCALE = 0.1
@@ -167,7 +174,15 @@ except Exception:
 # TERMINAL_STATE_SCALE = 10
 # size="0.05 0.048 0.05"
 
-# cem_energybased_block2d_14(seed=1)
-# no icnn z bias, no icnn min, relu weight for icnn, non init policy
-# init_log_std = 1.0
-# damp_min = torch.ones(coord_dim) * 1e-3
+# cem_energybased_block2d_1(seed=1)
+# only quad no icnn
+# init_quad_pot=4.,
+
+# cem_energybased_block2d_2(seed=1)
+# full, pos 1
+# init_quad_pot=0.1,
+# min_quad_pot=1e-3,
+# max_quad_pot=0.5e1,
+
+# cem_energybased_block2d_3(seed=1)
+# pos 2
