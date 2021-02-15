@@ -8,7 +8,7 @@ from garage import EpisodeBatch, log_performance
 from garage.np import paths_to_tensors
 from garage.np.algos.rl_algorithm import RLAlgorithm
 from garage.sampler import RaySampler, LocalSampler
-from energybased_stable_rl.utilities.param_exp import sample_params, cem_init_std, cem_stat_compute
+from energybased_stable_rl.utilities.param_exp_new import sample_params, cem_init_std, cem_stat_compute
 from garage.torch.optimizers import OptimizerWrapper
 
 class CEM(RLAlgorithm):
@@ -99,7 +99,7 @@ class CEM(RLAlgorithm):
         """
         # epoch-wise
         self._cur_mean = self.policy.get_param_values()
-        cem_init_std(self._cur_mean, self._cur_std, self._init_std, self._init_log_std)
+        cem_init_std(self._cur_mean, self._cur_std, self._init_std, self._init_log_std, self.policy)
 
         # epoch-cycle-wise
         self._cur_params = self._cur_mean
@@ -134,7 +134,7 @@ class CEM(RLAlgorithm):
                     while np.any(np.abs(action0) > self._action_lt):
                         print('action0', action0)
                         # self._cur_params = self._cur_mean       # todo
-                        self._cur_params = sample_params(self._cur_mean, self._cur_std, trainer.step_itr)
+                        self._cur_params = sample_params(self._cur_mean, self._cur_std)
                         self.policy.set_param_values(self._cur_params)
                         if self._min_icnn:
                             self.policy._module.min_icnn()
