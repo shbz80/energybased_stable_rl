@@ -82,7 +82,7 @@ class ICNN(nn.Module):
         self._z_layers.append(positive_linear_layer)
 
         self.nonlinearity = NonLinearity(nonlinearity)      # todo try without NonLinearity
-        print('icnn init')
+        # print('icnn init')
 
     def forward(self, z):
 
@@ -102,27 +102,29 @@ class ICNN(nn.Module):
         return z_
 
     def grad_x(self, z):
-        dz1_dx = self._y_layers[0].weight
-        z0 = z.clone()
-        z = self._y_layers[0](z0)
-        dz1r_dz1 = self.relu_grad(z)
-        dz1r_dz1_ = dz1r_dz1.unsqueeze(2).repeat(1, 1, dz1_dx.shape[1])
-        z = self.nonlinearity(z)
-        dz1_dx_ = dz1_dx.expand_as(dz1r_dz1_)
-        dz1r_dx = dz1r_dz1_ * dz1_dx_
-
-        layer_num = len(self._z_layers)
-        for i in range(layer_num):
-            z = self._y_layers[i + 1](z0) + self._z_layers[i](z)
-            dz1r_dz = self.relu_grad(z)
+        with torch.no_grad():
+            dz1_dx = self._y_layers[0].weight
+            z0 = z.clone()
+            z = self._y_layers[0](z0)
+            dz1r_dz1 = self.relu_grad(z)
+            dz1r_dz1_ = dz1r_dz1.unsqueeze(2).repeat(1, 1, dz1_dx.shape[1])
             z = self.nonlinearity(z)
-            dzz1_dx = torch.matmul(self._z_layers[i].get_weight(), dz1r_dx)
-            dzy1_dx = self._y_layers[i + 1].weight
-            dzy1_dx_plus_dzz1_dx = dzy1_dx + dzz1_dx
-            dz1r_dz_ = dz1r_dz.unsqueeze(2).repeat(1, 1, dzy1_dx_plus_dzz1_dx.shape[2])
-            dz1r_dx = dz1r_dz_ * dzy1_dx_plus_dzz1_dx
+            dz1_dx_ = dz1_dx.expand_as(dz1r_dz1_)
+            dz1r_dx = dz1r_dz1_ * dz1_dx_
+
+            layer_num = len(self._z_layers)
+            for i in range(layer_num):
+                z = self._y_layers[i + 1](z0) + self._z_layers[i](z)
+                dz1r_dz = self.relu_grad(z)
+                z = self.nonlinearity(z)
+                dzz1_dx = torch.matmul(self._z_layers[i].get_weight(), dz1r_dx)
+                dzy1_dx = self._y_layers[i + 1].weight
+                dzy1_dx_plus_dzz1_dx = dzy1_dx + dzz1_dx
+                dz1r_dz_ = dz1r_dz.unsqueeze(2).repeat(1, 1, dzy1_dx_plus_dzz1_dx.shape[2])
+                dz1r_dx = dz1r_dz_ * dzy1_dx_plus_dzz1_dx
 
         return dz1r_dx.squeeze(1)
+
 
 
 
@@ -194,7 +196,7 @@ class Damping(nn.Module):
             w_init_offdiag(linear_layer.weight)
             b_init_offdiag(linear_layer.bias)
             self._offdiag_output_layer.append(linear_layer)
-        print('damper init')
+        # print('damper init')
 
     def forward(self, input):
         # todo this method is not ready for batch input data

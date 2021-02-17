@@ -96,6 +96,7 @@ class EnergyBasedControlModule(nn.Module):
         with torch.enable_grad():
             x = self.curr_x_min
             x.requires_grad = True
+            # x.grad.data.zero_()
             max_iter = 1000
             optimizer = torch.optim.LBFGS([x], lr=self._icnn_min_lr, max_iter=max_iter, line_search_fn='strong_wolfe')  # todo remove line search if error persists
 
@@ -156,11 +157,11 @@ class EnergyBasedControlModule(nn.Module):
         # quad_pot = quad_pot.exp()     #todo
 
 
-        with torch.enable_grad():
-            x.requires_grad = True
-            psi = self._icnn_module(x)
-            self.u_pot = - jacobian_batch(psi, x, create_graph=False).detach()
-        # self.u_pot = -self._icnn_module.grad_x(x)
+        # with torch.enable_grad():
+            # x.requires_grad = True
+            # psi = self._icnn_module(x)
+            # self.u_pot = - jacobian_batch(psi, x, create_graph=False).detach()
+        self.u_pot = -self._icnn_module.grad_x(x)
         # self.u_pot = torch.zeros(self._coord_dim).view(1,-1)        #todo
         if torch.any(torch.isnan(self.u_pot)):
             print('nan in u_pot')
