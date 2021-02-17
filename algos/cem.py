@@ -8,8 +8,10 @@ from garage import EpisodeBatch, log_performance
 from garage.np import paths_to_tensors
 from garage.np.algos.rl_algorithm import RLAlgorithm
 from garage.sampler import RaySampler, LocalSampler
-from energybased_stable_rl.utilities.param_exp_new import sample_params, cem_init_std, cem_stat_compute
+from energybased_stable_rl.utilities.param_exp_new import sample_params, cem_init_std, cem_stat_compute, scale_grad_params,get_grad_theta
 from garage.torch.optimizers import OptimizerWrapper
+from energybased_stable_rl.policies.energy_based_control_policy import EnergyBasedPolicy
+import copy
 
 class CEM(RLAlgorithm):
     """Cross Entropy Method.
@@ -50,7 +52,10 @@ class CEM(RLAlgorithm):
                  extra_std=0.,
                  extra_decay_time=100,
                  init_policy=None,
-                 min_icnn=False):
+                 min_icnn=False,
+                 sensitivity=False,
+                 extr_std_scale=0.1,
+                 std_scale=0.0):
         self.policy = policy
         self.max_episode_length = env_spec.max_episode_length
 
@@ -68,6 +73,10 @@ class CEM(RLAlgorithm):
         self._discount = discount
         self._n_samples = n_samples
         self._min_icnn = min_icnn
+        self._extr_std_scale = extr_std_scale
+        self._std_scale = std_scale
+        self._obs0 = None
+        self._sensitivity = sensitivity
 
         self._cur_std = {}
         self._cur_mean = None
@@ -76,7 +85,10 @@ class CEM(RLAlgorithm):
         self._all_params = None
         self._n_best = None
         self._n_params = None
+        self._n_epochs = None
+        self.epoch_cntr = 0
         self._action_lt = action_lt
+        self.module_scale_dict = None
 
         if init_policy is not None:
             self._init_policy = init_policy
@@ -98,7 +110,14 @@ class CEM(RLAlgorithm):
 
         """
         # epoch-wise
-        self._cur_mean = self.policy.get_param_values()
+        self._n_epochs = trainer._train_args.n_epochs
+        self._cur_mean = copy.deepcopy(self.policy.get_param_values())
+        self.obs0 = trainer._sampler._workers[0].start_episode()
+
+        if isinstance(self.policy, EnergyBasedPolicy):
+            self.module_grad_dict = get_grad_theta(self.policy, torch.from_numpy(self.obs0[:self._coord_dim]).float())
+            self.module_scale_dict = scale_grad_params(self.module_grad_dict, sensitivity=self._sensitivity)
+
         cem_init_std(self._cur_mean, self._cur_std, self._init_std, self._init_log_std, self.policy)
 
         # epoch-cycle-wise
@@ -114,11 +133,11 @@ class CEM(RLAlgorithm):
         # start actual training
         last_return = None
 
-        epoch_itr = 0
+        self.epoch_cntr = 0
         for _ in trainer.step_epochs():
             trainer.step_path = []
 
-            if epoch_itr==0 and hasattr(self, '_init_policy'):
+            if self.epoch_cntr==0 and hasattr(self, '_init_policy'):
                 for _ in range(self._n_samples):
                     step_path = trainer.obtain_samples(trainer.step_itr, agent_update=self._init_policy)
                     trainer.step_itr += 1
@@ -134,7 +153,8 @@ class CEM(RLAlgorithm):
                     while np.any(np.abs(action0) > self._action_lt):
                         print('action0', action0)
                         # self._cur_params = self._cur_mean       # todo
-                        self._cur_params = sample_params(self._cur_mean, self._cur_std)
+                        extr_std_weight = self._extr_std_scale * (1.0 - (self.epoch_cntr/(self._n_epochs-1))**2)
+                        self._cur_params = sample_params(self._cur_mean, self._cur_std, self._std_scale, extr_std_weight, self.module_scale_dict)
                         self.policy.set_param_values(self._cur_params)
                         if self._min_icnn:
                             self.policy._module.min_icnn()
@@ -150,7 +170,7 @@ class CEM(RLAlgorithm):
                     trainer.step_itr += 1
                     trainer.step_path.append(step_path[0])
 
-            epoch_itr = epoch_itr +1
+            self.epoch_cntr = self.epoch_cntr +1
 
 
 
@@ -237,6 +257,9 @@ class CEM(RLAlgorithm):
             # MLE of normal distribution
             cem_stat_compute(best_params,self._cur_mean, self._cur_std)
             self.policy.set_param_values(self._cur_mean)
+            if isinstance(self.policy, EnergyBasedPolicy):
+                self.module_grad_dict = get_grad_theta(self.policy, torch.from_numpy(self.obs0[:self._coord_dim]).float())
+                self.module_scale_dict = scale_grad_params(self.module_grad_dict)
 
             # Clear for next epoch
             rtn = max(self._all_returns)
