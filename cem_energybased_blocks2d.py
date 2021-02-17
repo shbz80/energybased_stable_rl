@@ -45,8 +45,11 @@ def cem_energybased_block2d(ctxt=None, seed=1):
     init_log_std = log_std
 
 
-    init_std = 0.05
-    init_log_std = 1.0
+    # init_std = 0.05
+    # init_log_std = 1.0
+
+    init_std = 0.2
+    init_log_std = 0.2
 
     coord_dim = env.spec.observation_space.flat_dim // 2
 
@@ -100,7 +103,10 @@ def cem_energybased_block2d(ctxt=None, seed=1):
                action_lt=5.0,
                n_samples=n_samples,
                init_policy=init_policy,     # pass None if policy init is not required
-               min_icnn=False)
+               min_icnn=False,
+               sensitivity=False,
+               extr_std_scale=0.2,
+               std_scale=0.5)   # 1.0: standard cem, 0.0: sensitivity scaled cem
 
     # n_workers should be 1
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
@@ -108,7 +114,7 @@ def cem_energybased_block2d(ctxt=None, seed=1):
     trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
 
 try:
-    cem_energybased_block2d(seed=1)
+    cem_energybased_block2d(seed=3)
 except Exception:
     traceback.print_exc()
 
@@ -186,3 +192,80 @@ except Exception:
 
 # cem_energybased_block2d_3(seed=1)
 # pos 2
+
+# cem_energybased_block2d_4(seed=1)
+# pos 1 pure cem
+# init_std = 0.5
+# init_log_std = 0.5
+# coord_dim = env.spec.observation_space.flat_dim // 2
+# damp_min = torch.ones(coord_dim) * 1e-3
+# icnn_bias = False
+# init_policy = None
+# policy = EnergyBasedPolicy(env.spec,
+#                                    icnn_hidden_sizes=(16,16),
+#                                    w_init_icnn_y=nn.init.xavier_uniform_,
+#                                    b_init_icnn_y=nn.init.zeros_,
+#                                     w_init_icnn_y_param=None,  # pass None if...
+#                                    # w_init_icnn_z=nn.init.constant_,
+#                                     w_init_icnn_z=nn.init.xavier_uniform_,
+#                                    w_init_icnn_z_param=None,        # pass None if...
+#                                    icnn_bias = icnn_bias,
+#                                    positive_type = 'relu',
+#                                    nonlinearity_icnn=torch.relu,
+#                                    damper_hidden_sizes=(8, 8),
+#                                    w_init_damper_offdiag=nn.init.xavier_uniform_,
+#                                    b_init_damper_offdiag=nn.init.zeros_,
+#                                    w_init_damper_diag=nn.init.xavier_uniform_,
+#                                    b_init_damper_diag=nn.init.zeros_,
+#                                    hidden_nonlinearity_damper=torch.tanh,
+#                                    full_mat_damper=True,
+#                                    damp_min = damp_min,
+#                                    init_quad_pot=0.1,
+#                                    min_quad_pot=1e-3,
+#                                    max_quad_pot=0.5e1,
+#                                    # init_quad_pot=1e-3,
+#                                    # min_quad_pot=1e-3,
+#                                    # max_quad_pot=1e-3,
+#                                    icnn_min_lr=1e-4,)
+# n_samples = 15
+# algo = CEM(env_spec=env.spec,
+#            policy=policy,
+#            init_std=init_std,
+#            init_log_std = init_log_std,
+#            baseline=baseline,
+#            best_frac=0.2,
+#            action_lt=5.0,
+#            n_samples=n_samples,
+#            init_policy=init_policy,     # pass None if policy init is not required
+#            min_icnn=False,
+#            sensitivity=False,
+#            extr_std_scale=0.5,
+#            std_scale=1)   # 1.0: standard cem, 0.0: sensitivity scaled cem
+# OFFSET = np.array([0.4, -0.6])
+# OFFSET_1 = np.array([0, 0])         # NFPPPO fixed init
+# GOAL = np.array([0, 0.5])+OFFSET
+# INIT = np.array([-0.3, 0.8])+OFFSET+OFFSET_1      pos 1
+# T = 200
+# POS_SCALE = 1
+# VEL_SCALE = 0.1
+# ACTION_SCALE = 1e-3
+# v = 2
+# w = 1
+# TERMINAL_STATE_SCALE = 10
+# size="0.05 0.048 0.05"
+
+# cem_energybased_block2d_5(seed=1)
+# pos 1 mixed cem
+# std_scale=0.5
+
+# cem_energybased_block2d_6(seed=1)
+# pos 1 mixed cem
+# std_scale=0
+
+# cem_energybased_block2d_7(seed=1)
+# pos 2 pure cem
+# std_scale=0
+
+# cem_energybased_block2d_8(seed=3)
+# pos 2 mixed cem
+# std_scale=0.5

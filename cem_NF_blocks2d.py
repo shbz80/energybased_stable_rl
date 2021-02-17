@@ -37,12 +37,11 @@ def cem_nf_block2d(ctxt=None, seed=1):
     trainer = Trainer(ctxt)
 
 
-    init_std = 0.5
-    init_log_std = 0.01
-
+    init_std = 0.1
+    init_log_std = 0.1
     init_policy = None
     policy = DeterministicNormFlowPolicy(env.spec,
-                                    n_flows=1,
+                                    n_flows=2,
                                     hidden_dim=16,
                                     init_std=2.,
                                     K=1.0,
@@ -60,15 +59,21 @@ def cem_nf_block2d(ctxt=None, seed=1):
     algo = CEM(env_spec=env.spec,
                policy=policy,
                init_std=init_std,
-               init_log_std = init_log_std,
+               init_log_std=init_log_std,
                baseline=baseline,
                best_frac=0.2,
                action_lt=5.0,
                n_samples=n_samples,
-               init_policy=init_policy,     # pass None if policy init is not required
-               min_icnn=False)
+               init_policy=init_policy,  # pass None if policy init is not required
+               min_icnn=False,
+               sensitivity=False,
+               extr_std_scale=0.1,
+               std_scale=1.0)  # 1.0: standard cem, 0.0: sensitivity scaled cem
 
     # n_workers should be 1
+    # resume_dir = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment/cem_nf_block2d_7'
+    # trainer.restore(resume_dir, from_epoch=7)
+    # trainer.resume(n_epochs=50)
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
 
     trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
@@ -79,15 +84,19 @@ except Exception:
     traceback.print_exc()
 
 # cem_nf_block2d(seed=1)
-# init_std = 0.05
-# init_log_std = 0.01
+# init_std = 0.2
+# init_log_std = 0.2
 # init_policy = None
 # policy = DeterministicNormFlowPolicy(env.spec,
 #                                 n_flows=2,
-#                                 hidden_dim=8,
+#                                 hidden_dim=16,
 #                                 init_std=2.,
 #                                 K=1.0,
 #                                 D=1.0,
+#                                  init_func=nn.init.xavier_uniform_,
+#                                  init_const=None,
+#                                  # init_func=nn.init.constant_,
+#                                  # init_const=0.1,
 #                                 jac_damping=True)
 #
 # baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -97,14 +106,16 @@ except Exception:
 # algo = CEM(env_spec=env.spec,
 #            policy=policy,
 #            init_std=init_std,
-#            init_log_std = init_log_std,
+#            init_log_std=init_log_std,
 #            baseline=baseline,
 #            best_frac=0.2,
 #            action_lt=5.0,
 #            n_samples=n_samples,
-#            init_policy=init_policy,     # pass None if policy init is not required
-#            min_icnn=False)
-#
+#            init_policy=init_policy,  # pass None if policy init is not required
+#            min_icnn=False,
+#            sensitivity=False,
+#            extr_std_scale=0.2,
+#            std_scale=0.5)  # 1.0: standard cem, 0.0: sensitivity scaled cem
 # # n_workers should be 1
 # trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
 #
@@ -122,6 +133,3 @@ except Exception:
 # TERMINAL_STATE_SCALE = 10
 # size="0.05 0.048 0.05"
 
-# cem_nf_block2d_1(seed=1)
-# K=4.0,
-# D=2.0,
