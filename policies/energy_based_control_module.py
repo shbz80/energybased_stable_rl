@@ -158,9 +158,9 @@ class EnergyBasedControlModule(nn.Module):
 
 
         # with torch.enable_grad():
-            # x.requires_grad = True
-            # psi = self._icnn_module(x)
-            # self.u_pot = - jacobian_batch(psi, x, create_graph=False).detach()
+        #     x.requires_grad = True
+        #     psi = self._icnn_module(x)
+        #     self.u_pot = - jacobian_batch(psi, x, create_graph=False).detach()
         self.u_pot = -self._icnn_module.grad_x(x)
         # self.u_pot = torch.zeros(self._coord_dim).view(1,-1)        #todo
         if torch.any(torch.isnan(self.u_pot)):

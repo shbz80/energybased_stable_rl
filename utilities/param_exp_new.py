@@ -90,7 +90,7 @@ def scale_grad_params(grad_dict, sensitivity=False):
             scale_dict[key] = torch.ones_like(grad_dict[key])
     return scale_dict
 
-def get_grad_theta(policy, obs0):
+def get_grad_theta(policy, obs0, sensitivity=False):
         grad_dict = {}
         key_strs = ['_icnn_module']
 
@@ -99,8 +99,11 @@ def get_grad_theta(policy, obs0):
             for (key, param) in policy.named_parameters():
                 for key_str in key_strs:
                     if key_str in key:
-                        policy._module._icnn_module.zero_grad()
-                        psi = policy._module._icnn_module(obs0)
-                        grad = torch.autograd.grad(psi, param, None, retain_graph=False, create_graph=False)
-                        grad_dict[key] = grad[0].detach()
+                        if sensitivity:
+                            policy._module._icnn_module.zero_grad()
+                            psi = policy._module._icnn_module(obs0)
+                            grad = torch.autograd.grad(psi, param, None, retain_graph=False, create_graph=False)
+                            grad_dict[key] = grad[0].detach()
+                        else:
+                            grad_dict[key] = torch.ones_like(param)
         return grad_dict
