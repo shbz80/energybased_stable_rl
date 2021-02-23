@@ -94,11 +94,19 @@ class ICNN(nn.Module):
             z = self.nonlinearity(self._y_layers[i+1](z0) + self._z_layers[i](z))
         return z
 
+    # def relu_grad(self, z):
+    #     z_ = z.clone()
+    #     # z_.squeeze_()
+    #     z_[(z_ > 0.0)] = 1.0
+    #     z_[(z_ <= 0.0)] = 0.0
+    #     return z_
+
     def relu_grad(self, z):
+        d = torch.tensor(.01)
         z_ = z.clone()
-        # z_.squeeze_()
-        z_[(z_ > 0.0)] = 1.0
+        z_[(z_ >= d)] = 1.0
         z_[(z_ <= 0.0)] = 0.0
+        z_[torch.logical_and(z_ < d, z_ > 0.0)] = z[torch.logical_and(z < d, z > 0.0)]/d
         return z_
 
     def grad_x(self, z):
