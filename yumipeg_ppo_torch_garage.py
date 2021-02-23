@@ -41,18 +41,18 @@ def yumipeg_ppo_garage(ctxt=None, seed=1):
                                output_nonlinearity=None,
                                init_std=2.)
 
-    # value_function = LinearFeatureBaseline(env_spec=env.spec)
-    value_function = GaussianMLPValueFunction(env_spec=env.spec,
-                                              hidden_sizes=(32, 32),
-                                              hidden_nonlinearity=torch.tanh,
-                                              output_nonlinearity=None)
+    value_function = LinearFeatureBaseline(env_spec=env.spec)
+    # value_function = GaussianMLPValueFunction(env_spec=env.spec,
+    #                                           hidden_sizes=(32, 32),
+    #                                           hidden_nonlinearity=torch.tanh,
+    #                                           output_nonlinearity=None)
     N = 100  # number of epochs
     S = 15  # number of episodes in an epoch
     algo = PPO(env_spec=env.spec,
                policy=policy,
                value_function=value_function,
                discount=0.99,
-               lr_clip_range=0.1,
+               lr_clip_range=0.05,
                # center_adv=False,
                )
 
@@ -62,15 +62,16 @@ def yumipeg_ppo_garage(ctxt=None, seed=1):
     trainer.setup(algo, env, n_workers=4)
     trainer.train(n_epochs=N, batch_size=T*S, plot=True, store_episodes=True)
 
-yumipeg_ppo_garage(seed=2)
+yumipeg_ppo_garage(seed=1)
+
 
 # yumipeg_ppo_garage(seed=1)
-# yumipeg_ppo_garage_1(seed=2)
 # policy = GaussianMLPPolicy(env.spec,
-#                            hidden_sizes=[32, 32],
-#                            hidden_nonlinearity=torch.tanh,
-#                            output_nonlinearity=None,
-#                            init_std=2.)
+#                                hidden_sizes=[32, 32],
+#                                hidden_nonlinearity=torch.tanh,
+#                                output_nonlinearity=None,
+#                                init_std=2.)
+#
 # value_function = LinearFeatureBaseline(env_spec=env.spec)
 # N = 100  # number of epochs
 # S = 15  # number of episodes in an epoch
@@ -78,21 +79,31 @@ yumipeg_ppo_garage(seed=2)
 #            policy=policy,
 #            value_function=value_function,
 #            discount=0.99,
-#            lr_clip_range=0.1,
+#            lr_clip_range=0.05,
 #            # center_adv=False,
 #            )
 # trainer.setup(algo, env, n_workers=4)
+# trainer.train(n_epochs=N, batch_size=T*S, plot=True, store_episodes=True)
+# size="0.023"
 # GOAL = np.array([-1.50337106, -1.24545874,  1.21963181,  0.46298941,  2.18633697,  1.51383283,
 #   0.57184653])
-# INIT = np.array([-1.14, -1.21, 0.965, 0.728, 1.97, 1.49, 0.])
+# # obs in operational space
+# GOAL_CART = [ 0.46473501,  0.10293446,  0.10217953, -0.00858317,  0.69395054,  0.71995417,
+#               0.00499788,  0.,          0.,          0.,          0.,          0.,      0.]
+# INIT = np.array([-0.91912945, -0.93873615,  1.03494441,  0.56895099,  1.69821677,  1.67984028, -0.06353955]) # nf rnd init 3 of 3
 # T = 200
+# dA = 3
+# dO = 6
+# dJ = 7
+# D_rot = np.eye(3)*4
+# SIGMA = np.array([0.05,0.05,0.01])
+# SIGMA_JT = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])*2. #todo
 # rand_init = False
+# rand_joint_space = False
+# kin_params_yumi = {}
+# kin_params_yumi['urdf'] = '/home/shahbaz/Software/yumi_kinematics/yumikin/models/yumi_ABB_left.urdf'
+# kin_params_yumi['base_link'] = 'world'
+# # kin_params_yumi['end_link'] = 'left_tool0'
 # kin_params_yumi['end_link'] = 'left_contact_point'
-# size="0.023"
-
-# yumipeg_ppo_garage_2(seed=1)
-# yumipeg_ppo_garage_3(seed=2)
-# value_function = GaussianMLPValueFunction(env_spec=env.spec,
-#                                               hidden_sizes=(32, 32),
-#                                               hidden_nonlinearity=torch.tanh,
-#                                               output_nonlinearity=None)
+# kin_params_yumi['euler_string'] = 'sxyz'
+# kin_params_yumi['goal'] = GOAL

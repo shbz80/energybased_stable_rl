@@ -18,10 +18,10 @@ OFFSET = np.array([0.4, -0.6])
 OFFSET_1 = np.array([0, 0])         # NFPPPO fixed init
 GOAL = np.array([0, 0.5])+OFFSET
 # INIT = np.array([-0.3, 0.8])+OFFSET # pos1
-INIT = np.array([-0.3, 0.8])+OFFSET+OFFSET_1
+# INIT = np.array([-0.3, 0.8])+OFFSET+OFFSET_1
 
 # INIT = np.array([0.0, -0.1])+OFFSET # pos2
-# INIT = np.array([0.0, -0.1])+OFFSET+OFFSET_1
+INIT = np.array([0.0, -0.1])+OFFSET+OFFSET_1
 
 # INIT = np.array([0.5, 0.3])+OFFSET # pos3
 

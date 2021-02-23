@@ -37,8 +37,8 @@ def cem_nf_block2d(ctxt=None, seed=1):
     trainer = Trainer(ctxt)
 
 
-    init_std = 0.1
-    init_log_std = 0.1
+    init_std = 0.15
+    init_log_std = 0.15
     init_policy = None
     policy = DeterministicNormFlowPolicy(env.spec,
                                     n_flows=2,
@@ -67,7 +67,7 @@ def cem_nf_block2d(ctxt=None, seed=1):
                init_policy=init_policy,  # pass None if policy init is not required
                min_icnn=False,
                sensitivity=False,
-               extr_std_scale=0.1,
+               extr_std_scale=0.15,
                std_scale=1.0)  # 1.0: standard cem, 0.0: sensitivity scaled cem
 
     # n_workers should be 1
@@ -84,14 +84,14 @@ except Exception:
     traceback.print_exc()
 
 # cem_nf_block2d(seed=1)
-# init_std = 0.2
-# init_log_std = 0.2
+# init_std = 0.15
+# init_log_std = 0.15
 # init_policy = None
 # policy = DeterministicNormFlowPolicy(env.spec,
 #                                 n_flows=2,
 #                                 hidden_dim=16,
 #                                 init_std=2.,
-#                                 K=1.0,
+#                                 K=2.0,
 #                                 D=1.0,
 #                                  init_func=nn.init.xavier_uniform_,
 #                                  init_const=None,
@@ -114,8 +114,8 @@ except Exception:
 #            init_policy=init_policy,  # pass None if policy init is not required
 #            min_icnn=False,
 #            sensitivity=False,
-#            extr_std_scale=0.2,
-#            std_scale=0.5)  # 1.0: standard cem, 0.0: sensitivity scaled cem
+#            extr_std_scale=0.15,
+#            std_scale=1)  # 1.0: standard cem, 0.0: sensitivity scaled cem
 # # n_workers should be 1
 # trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
 #
@@ -133,3 +133,9 @@ except Exception:
 # TERMINAL_STATE_SCALE = 10
 # size="0.05 0.048 0.05"
 
+# cem_nf_block2d_1(seed=1)
+# K=1.0,
+
+# cem_nf_block2d_2(seed=1)
+# K=1.0,
+# pos 2

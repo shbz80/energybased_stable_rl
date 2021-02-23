@@ -44,15 +44,15 @@ def cem_nf_yumi(ctxt=None, seed=1):
     trainer = Trainer(ctxt)
 
 
-    init_std = 0.05
-    init_log_std = 0.01
+    init_std = 0.15
+    init_log_std = 0.15
 
     init_policy = None
     policy = DeterministicNormFlowPolicy(env.spec,
                                     n_flows=2,
                                     hidden_dim=16,
                                     init_std=2.,
-                                    K=1.0,
+                                    K=4.0,
                                     D=1.0,
                                      init_func=nn.init.xavier_uniform_,
                                      init_const=None,
@@ -67,20 +67,81 @@ def cem_nf_yumi(ctxt=None, seed=1):
     algo = CEM(env_spec=env.spec,
                policy=policy,
                init_std=init_std,
-               init_log_std = init_log_std,
+               init_log_std=init_log_std,
                baseline=baseline,
                best_frac=0.2,
                action_lt=5.0,
                n_samples=n_samples,
-               init_policy=init_policy,     # pass None if policy init is not required
-               min_icnn=False)
+               init_policy=init_policy,  # pass None if policy init is not required
+               min_icnn=False,
+               sensitivity=False,
+               extr_std_scale=0.15,
+               std_scale=1.0)  # 1.0: standard cem, 0.0: sensitivity scaled cem
 
     # n_workers should be 1
+    # resume_dir = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment/cem_nf_yumi'
+    # trainer.restore(resume_dir, from_epoch=17)
+    # trainer.resume(n_epochs=50,plot=True)
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
-
     trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
 
 try:
     cem_nf_yumi(seed=1)
 except Exception:
     traceback.print_exc()
+
+# cem_nf_yumi(seed=1)
+# init_std = 0.15
+# init_log_std = 0.15
+# init_policy = None
+# policy = DeterministicNormFlowPolicy(env.spec,
+#                                 n_flows=2,
+#                                 hidden_dim=16,
+#                                 init_std=2.,
+#                                 K=4.0,
+#                                 D=1.0,
+#                                  init_func=nn.init.xavier_uniform_,
+#                                  init_const=None,
+#                                  # init_func=nn.init.constant_,
+#                                  # init_const=0.1,
+#                                 jac_damping=True)
+# baseline = LinearFeatureBaseline(env_spec=env.spec)
+# n_samples = 15
+# algo = CEM(env_spec=env.spec,
+#            policy=policy,
+#            init_std=init_std,
+#            init_log_std=init_log_std,
+#            baseline=baseline,
+#            best_frac=0.2,
+#            action_lt=5.0,
+#            n_samples=n_samples,
+#            init_policy=init_policy,  # pass None if policy init is not required
+#            min_icnn=False,
+#            sensitivity=False,
+#            extr_std_scale=0.15,
+#            std_scale=1.0)  # 1.0: standard cem, 0.0: sensitivity scaled cem
+# trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
+# trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
+# size="0.023"
+# GOAL = np.array([-1.50337106, -1.24545874,  1.21963181,  0.46298941,  2.18633697,  1.51383283,
+#   0.57184653])
+# # obs in operational space
+# GOAL_CART = [ 0.46473501,  0.10293446,  0.10217953, -0.00858317,  0.69395054,  0.71995417,
+#               0.00499788,  0.,          0.,          0.,          0.,          0.,      0.]
+# INIT = np.array([-0.91912945, -0.93873615,  1.03494441,  0.56895099,  1.69821677,  1.67984028, -0.06353955]) # nf rnd init 3 of 3
+# T = 200
+# dA = 3
+# dO = 6
+# dJ = 7
+# D_rot = np.eye(3)*4
+# SIGMA = np.array([0.05,0.05,0.01])
+# SIGMA_JT = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])*2. #todo
+# rand_init = False
+# rand_joint_space = False
+# kin_params_yumi = {}
+# kin_params_yumi['urdf'] = '/home/shahbaz/Software/yumi_kinematics/yumikin/models/yumi_ABB_left.urdf'
+# kin_params_yumi['base_link'] = 'world'
+# # kin_params_yumi['end_link'] = 'left_tool0'
+# kin_params_yumi['end_link'] = 'left_contact_point'
+# kin_params_yumi['euler_string'] = 'sxyz'
+# kin_params_yumi['goal'] = GOAL
