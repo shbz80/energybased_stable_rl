@@ -1,17 +1,18 @@
 import numpy as np
 # from garage.misc import tensor_utils
-# from agent_hyperparams import reward_params # todo
+from agent_hyperparams import reward_params # todo
+# from garage._dtypes import StepType, EpisodeBatch
 
-reward_params = {}
-reward_params['LIN_SCALE'] = 1
-reward_params['ROT_SCALE'] = 1
-reward_params['POS_SCALE'] = 1
-reward_params['VEL_SCALE'] = 1e-1
-reward_params['STATE_SCALE'] = 1
-reward_params['ACTION_SCALE'] = 1e-3
-reward_params['v'] = 2
-reward_params['w'] = 1
-reward_params['TERMINAL_STATE_SCALE'] = 20
+# reward_params = {}
+# reward_params['LIN_SCALE'] = 1
+# reward_params['ROT_SCALE'] = 1
+# reward_params['POS_SCALE'] = 1
+# reward_params['VEL_SCALE'] = 1e-1
+# reward_params['STATE_SCALE'] = 1
+# reward_params['ACTION_SCALE'] = 1e-3
+# reward_params['v'] = 2
+# reward_params['w'] = 1
+# reward_params['TERMINAL_STATE_SCALE'] = 20
 
 def cart_rwd_shape_1(d, v=1, w=1):
 
@@ -76,32 +77,36 @@ def cart_rwd_func_1(x, f, terminal=False):
 
     return reward, rewards
 
-# def process_cart_path_rwd(path, kin_obj, discount):
-#     Q_Qdots = path['observations']
-#     X_Xdots = kin_obj.get_cart_error_frame_list(Q_Qdots)
-#     N = Q_Qdots.shape[0]
-#     path['observations'] = X_Xdots
-#     Fs = path['agent_infos']['mean']
-#     Trqs = path['actions']
-#     path['actions'] = Fs
-#     path['agent_infos']['mean'] = Trqs
-#     Xs = X_Xdots[:,:12]
-#     Rxs = np.zeros((N,4))
-#     Rus = np.zeros(N)
-#     Rs = np.zeros(N)
-#     for i in range(N):
-#         x = Xs[i]
-#         f = Fs[i]
-#         r, rs = cart_rwd_func_1(x, f, terminal=(i==(N-1)))
-#         Rs[i] = r
-#         Rus[i] = rs[4]
-#         Rxs[i] = rs[:4]
-#     path['rewards'] = Rs
-#     path['env_infos'] = {}
-#     path['env_infos']['reward_dist'] = Rxs
-#     path['env_infos']['reward_ctrl'] = Rus
-#     path['returns'] = tensor_utils.discount_cumsum(path['rewards'], discount)
-#     return path
+def process_cart_path_rwd(path, kin_obj):
+    Q_Qdots = path['agent_infos']['jx']
+    X_Xdots = kin_obj.get_cart_error_frame_list(Q_Qdots)
+    path['agent_infos']['ex'] = X_Xdots
+    N = Q_Qdots.shape[0]
+    path['observations'] = np.concatenate((X_Xdots[:,:3],X_Xdots[:,6:9]),axis=1)
+    Fs = path['agent_infos']['ef']
+    path['actions'] = Fs[:,:3]
+    Xs = X_Xdots[:,:12]
+    Rxs = np.zeros((N,4))
+    Rus = np.zeros(N)
+    Rs = np.zeros(N)
+    dones = np.zeros(N)
+    # T = reward_params['T']
+    for i in range(N):
+        x = Xs[i]
+        f = Fs[i]
+        r, rs = cart_rwd_func_1(x, f, terminal=(i==(N-1)))
+        Rs[i] = r
+        Rus[i] = rs[4]
+        Rxs[i] = rs[:4]
+        dones[i] = False
+    path['rewards'] = Rs
+    path['env_infos'] = {}
+    path['env_infos']['reward_dist'] = Rxs
+    path['env_infos']['reward_ctrl'] = Rus
+    path['dones'] = dones
+
+    # path['returns'] = tensor_utils.discount_cumsum(path['rewards'], discount)
+    return path
 #
 # def process_samples_fill(path, T):
 #     '''

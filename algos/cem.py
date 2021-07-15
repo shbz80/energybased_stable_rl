@@ -112,7 +112,8 @@ class CEM(RLAlgorithm):
         # epoch-wise
         self._n_epochs = trainer._train_args.n_epochs
         self._cur_mean = copy.deepcopy(self.policy.get_param_values())
-        self.obs0 = trainer._sampler._workers[0].start_episode()
+        # self.obs0 = trainer._sampler._workers[0].start_episode()
+        self.obs0 = np.array([0.49023297, 0.09368972, 0.0782146,0,0,0]) #todo
 
         if isinstance(self.policy, EnergyBasedPolicy):
             self.module_grad_dict = get_grad_theta(self.policy, torch.from_numpy(self.obs0[:self._coord_dim]).float())
@@ -158,7 +159,8 @@ class CEM(RLAlgorithm):
                         self.policy.set_param_values(self._cur_params)
                         if self._min_icnn:
                             self.policy._module.min_icnn()
-                        obs = trainer._sampler._workers[0].start_episode()
+                        # obs = trainer._sampler._workers[0].start_episode()
+                        obs = np.array([0.49023297, 0.09368972, 0.0782146,0,0,0]) #todo
                         action0, _ = self.policy.get_action(obs)
                         i = i + 1
                         print('CEM init trials:', i)
