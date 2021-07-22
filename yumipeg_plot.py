@@ -8,19 +8,19 @@ from energybased_stable_rl.envs.yumipegcart import T
 
 base_filename = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment'
 # exp_name = 'cem_energybased_yumi_2'
-# exp_name = 'cem_energybased_yumi_1'
-exp_name = 'cem_nf_yumi'
-# exp_name = 'yumipeg_ppo_garage_2'
+# exp_name = 'cem_energybased_yumi_8'
+exp_name = 'cem_nf_yumi_5'
+# exp_name = 'yumipeg_ppo_garage_4'
 
 SUCCESS_DIST = 0.004
 plot_skip = 3
 plot_traj = False
 traj_skip = 1
 epoch_start = 0
-epoch_num = 50
+epoch_num = 100
 T = 200
 tm = range(T)
-plot_energy = True
+plot_energy = False
 sample_num = 15
 
 for i in range(epoch_start,epoch_num):

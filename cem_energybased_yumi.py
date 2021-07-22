@@ -22,6 +22,20 @@ import traceback
 from akro.box import Box
 from garage import EnvSpec
 
+def smooth_relu(x):
+    d = torch.tensor(.01)
+    z = torch.zeros_like(x)
+    if torch.any(x <= 0.0):
+        z[(x <= 0.0)] = 0.0
+
+    if torch.any(torch.logical_and(x > 0.0, x < d)):
+        z[torch.logical_and(x > 0.0, x < d)] = x[torch.logical_and(x > 0.0, x < d)]**2/(2.0*d)
+
+    if torch.any(x >= d):
+        z[(x >= d)] = x[(x >= d)]-(d/2.0)
+
+    return z
+
 @wrap_experiment(snapshot_mode='all')
 def cem_energybased_yumi(ctxt=None, seed=1):
     """Train CEM with Cartpole-v1 environment.
@@ -69,7 +83,8 @@ def cem_energybased_yumi(ctxt=None, seed=1):
                                w_init_icnn_z_param=None,  # pass None if...
                                icnn_bias=icnn_bias,
                                positive_type='relu',
-                               nonlinearity_icnn=torch.relu,
+                               # nonlinearity_icnn=torch.relu,
+                               nonlinearity_icnn=smooth_relu,  # if using this change relu_grad in class ICNN
                                damper_hidden_sizes=(12, 12),
                                w_init_damper_offdiag=nn.init.xavier_uniform_,
                                b_init_damper_offdiag=nn.init.zeros_,
@@ -107,14 +122,14 @@ def cem_energybased_yumi(ctxt=None, seed=1):
     # n_workers should be 1
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
 
-    trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
+    trainer.train(n_epochs=100, batch_size=T, plot=False, store_episodes=True)
 
 try:
-    cem_energybased_yumi(seed=3)
+    cem_energybased_yumi(seed=9)
 except Exception:
     traceback.print_exc()
 
-# cem_energybased_yumi(seed=1)
+# cem_energybased_yumi(seed=1)1_5
 # init_std = 0.2
 # init_log_std = 0.2
 # coord_dim = env.spec.observation_space.flat_dim // 2
@@ -131,7 +146,8 @@ except Exception:
 #                            w_init_icnn_z_param=None,  # pass None if...
 #                            icnn_bias=icnn_bias,
 #                            positive_type='relu',
-#                            nonlinearity_icnn=torch.relu,
+#                            # nonlinearity_icnn=torch.relu,
+#                            nonlinearity_icnn=smooth_relu,  # if using this change relu_grad in class ICNN
 #                            damper_hidden_sizes=(12, 12),
 #                            w_init_damper_offdiag=nn.init.xavier_uniform_,
 #                            b_init_damper_offdiag=nn.init.zeros_,
@@ -161,11 +177,11 @@ except Exception:
 #            min_icnn=False,
 #            sensitivity=False,
 #            extr_std_scale=0.2,
-#            std_scale=1.0)  # 1.0: standard cem, 0.
+#            std_scale=1)  # 1.0: standard cem, 0.
+#
 # # n_workers should be 1
 # trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
-# trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
-# size="0.023"
+# trainer.train(n_epochs=100, batch_size=T, plot=True, store_episodes=True)
 # GOAL = np.array([-1.50337106, -1.24545874,  1.21963181,  0.46298941,  2.18633697,  1.51383283,
 #   0.57184653])
 # # obs in operational space
@@ -188,6 +204,20 @@ except Exception:
 # kin_params_yumi['end_link'] = 'left_contact_point'
 # kin_params_yumi['euler_string'] = 'sxyz'
 # kin_params_yumi['goal'] = GOAL
-
-# cem_energybased_yumi_1(seed=3)
 # size="0.0235"
+
+# cem_energybased_yumi_1(seed=2)2_5
+
+# cem_energybased_yumi_2(seed=3)*_5
+
+# cem_energybased_yumi_3(seed=4)*_5
+
+# cem_energybased_yumi_4(seed=5)*_5
+
+# cem_energybased_yumi_5(seed=6)3_5
+
+# cem_energybased_yumi_6(seed=7)4_5
+
+# cem_energybased_yumi_7(seed=8)*_5
+
+# cem_energybased_yumi_8(seed=9)5_5
