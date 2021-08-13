@@ -34,6 +34,7 @@ def smooth_relu(x):
 
     return z
 
+# Note: Save and resume is not working properly for CEM algo. The std seems to be not saved and resumed. todo
 
 @wrap_experiment(snapshot_mode='all')
 def cem_energybased_block2d(ctxt=None, seed=1):
@@ -63,8 +64,10 @@ def cem_energybased_block2d(ctxt=None, seed=1):
     # init_std = 0.05
     # init_log_std = 1.0
 
-    init_std = 0.2
-    init_log_std = 0.2
+    # init_std = 0.2
+    # init_log_std = 0.2
+    init_std = 0.25
+    init_log_std = 0.25
 
     coord_dim = env.spec.observation_space.flat_dim // 2
 
@@ -121,16 +124,16 @@ def cem_energybased_block2d(ctxt=None, seed=1):
                init_policy=init_policy,     # pass None if policy init is not required
                min_icnn=False,
                sensitivity=False,       # do not use this
-               extr_std_scale=0.5,
+               extr_std_scale=0.2,
                std_scale=1.0)   # 1.0: standard cem, 0.0: sensitivity scaled cem
 
     # n_workers should be 1
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
 
-    trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
+    trainer.train(n_epochs=100, batch_size=T, plot=True, store_episodes=True)
 
 try:
-    cem_energybased_block2d(seed=1)
+    cem_energybased_block2d(seed=12)
 except Exception:
     traceback.print_exc()
 
@@ -355,3 +358,41 @@ except Exception:
 
 # cem_energybased_block2d_11(seed=1)
 # smooth_relu, pos 2, pure icnn
+
+# cem_energybased_block2d_12(seed=1)1_5
+# smooth_relu, pos 2, n_epochs=100
+
+# cem_energybased_block2d_13(seed=6)2_5
+# smooth_relu, pos 2, n_epochs=100
+#     init_std = 0.25
+# init_log_std = 0.25
+
+# cem_energybased_block2d_14(seed=3)3_5
+
+# cem_energybased_block2d_15(seed=4)4_5
+
+# cem_energybased_block2d_16(seed=5)5_5
+
+# cem_energybased_block2d_17(seed=1)1_5
+# only icnn
+
+# cem_energybased_block2d_18(seed=1)1_3
+# only quad
+
+# cem_energybased_block2d_19(seed=2)2_3
+# only quad
+
+# cem_energybased_block2d_20(seed=3)3_3
+# only quad
+
+# cem_energybased_block2d_21(seed=3)2_5
+# only icnn
+
+# cem_energybased_block2d_22(seed=9)3_5
+# only icnn
+
+# cem_energybased_block2d_23(seed=10)4_5
+# only icnn
+#
+# cem_energybased_block2d_24(seed=12)5_5
+# only icnn

@@ -52,7 +52,7 @@ def cem_nf_yumi(ctxt=None, seed=1):
                                     n_flows=2,
                                     hidden_dim=16,
                                     init_std=2.,
-                                    K=4.0,
+                                    K=1.0,
                                     D=1.0,
                                      init_func=nn.init.xavier_uniform_,
                                      init_const=None,
@@ -83,10 +83,10 @@ def cem_nf_yumi(ctxt=None, seed=1):
     # trainer.restore(resume_dir, from_epoch=17)
     # trainer.resume(n_epochs=50,plot=True)
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
-    trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
+    trainer.train(n_epochs=100, batch_size=T, plot=False, store_episodes=True)
 
 try:
-    cem_nf_yumi(seed=1)
+    cem_nf_yumi(seed=5)
 except Exception:
     traceback.print_exc()
 
@@ -145,3 +145,15 @@ except Exception:
 # kin_params_yumi['end_link'] = 'left_contact_point'
 # kin_params_yumi['euler_string'] = 'sxyz'
 # kin_params_yumi['goal'] = GOAL
+
+# cem_nf_yumi_1(seed=1)1_5
+# K=1.0,
+# trainer.train(n_epochs=100, batch_size=T, plot=False, store_episodes=True)
+
+# cem_nf_yumi_2(seed=2)2_5
+
+# cem_nf_yumi_3(seed=3)3_5
+
+# cem_nf_yumi_4(seed=4)4_5
+
+# cem_nf_yumi_5(seed=5)5_5

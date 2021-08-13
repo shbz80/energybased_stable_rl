@@ -54,9 +54,9 @@ def block2D_ppo_torch_garage(ctxt=None, seed=1):
     trainer.setup(algo, env, n_workers=4)
     trainer.train(n_epochs=N, batch_size=T*S, plot=True, store_episodes=True)
 
-block2D_ppo_torch_garage(seed=1)
+block2D_ppo_torch_garage(seed=3)
 
-# block2D_ppo_torch_garage(seed=2)
+# block2D_ppo_torch_garage(seed=2)1_5
 # pos 2
 # policy = GaussianMLPPolicy(env.spec,
 #                                hidden_sizes=[16, 16],
@@ -88,3 +88,4 @@ block2D_ppo_torch_garage(seed=1)
 
 # block2D_ppo_torch_garage_1(seed=1)
 # pos 1
+

@@ -5,7 +5,7 @@ from matplotlib import cm
 import numpy as np
 from matplotlib import rc
 import torch
-from normflow_policy.envs.block2D import T
+from energybased_stable_rl.envs.block2D import T
 import copy
 
 font_size_1 = 12
@@ -83,9 +83,9 @@ ax2.set_ylim(0,100+5)
 # pickle.dump(block2d_eb_rl, open("block2d_eb_rl.p", "wb"))
 
 block2d_eb_rl = pickle.load( open( "block2d_eb_rl.p", "rb" ) )
-width = 1
-offset = [2, 0, 0, 2]
-# for i in [0, 1, 2]:
+width = 2
+# offset = [2, 0, 0, 2]       # for interval 5
+offset = [4, 0, 2, 3]
 for i in [0, 1, 2, 3]:
     epoch_num = epoch_nums[i]
     rl_progress = block2d_eb_rl[i]
@@ -93,7 +93,7 @@ for i in [0, 1, 2, 3]:
     rewards_undisc_std = rl_progress['reward_std']
     success_stat = rl_progress['stats']
 
-    interval = 5
+    interval = 10
     # idx = i*width + offset[i]
 
     inds = np.array(range(0,epoch_num)[offset[i]::interval])

@@ -22,6 +22,20 @@ import traceback
 from akro.box import Box
 from garage import EnvSpec
 
+def smooth_relu(x):
+    d = torch.tensor(.01)
+    z = torch.zeros_like(x)
+    if torch.any(x <= 0.0):
+        z[(x <= 0.0)] = 0.0
+
+    if torch.any(torch.logical_and(x > 0.0, x < d)):
+        z[torch.logical_and(x > 0.0, x < d)] = x[torch.logical_and(x > 0.0, x < d)]**2/(2.0*d)
+
+    if torch.any(x >= d):
+        z[(x >= d)] = x[(x >= d)]-(d/2.0)
+
+    return z
+
 @wrap_experiment(snapshot_mode='all')
 def cem_energybased_yumi(ctxt=None, seed=1):
     """Train CEM with Cartpole-v1 environment.
@@ -69,7 +83,8 @@ def cem_energybased_yumi(ctxt=None, seed=1):
                                w_init_icnn_z_param=None,  # pass None if...
                                icnn_bias=icnn_bias,
                                positive_type='relu',
-                               nonlinearity_icnn=torch.relu,
+                               # nonlinearity_icnn=torch.relu,
+                               nonlinearity_icnn=smooth_relu,   # if using this change relu_grad in class ICNN
                                damper_hidden_sizes=(12, 12),
                                w_init_damper_offdiag=nn.init.xavier_uniform_,
                                b_init_damper_offdiag=nn.init.zeros_,
@@ -107,7 +122,7 @@ def cem_energybased_yumi(ctxt=None, seed=1):
     # n_workers should be 1
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
 
-    trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
+    trainer.train(n_epochs=100, batch_size=T, plot=True, store_episodes=True)
 
 try:
     cem_energybased_yumi(seed=3)

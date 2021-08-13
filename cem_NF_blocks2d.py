@@ -76,7 +76,7 @@ def cem_nf_block2d(ctxt=None, seed=1):
     # trainer.resume(n_epochs=50)
     trainer.setup(algo, env, n_workers=1, sampler_cls=LocalSampler, worker_class=DefaultWorker)
 
-    trainer.train(n_epochs=50, batch_size=T, plot=True, store_episodes=True)
+    trainer.train(n_epochs=100, batch_size=T, plot=True, store_episodes=True)
 
 try:
     cem_nf_block2d(seed=1)
@@ -139,3 +139,21 @@ except Exception:
 # cem_nf_block2d_2(seed=1)
 # K=1.0,
 # pos 2
+
+# cem_nf_block2d_3(seed=1)1_5
+# k=1
+# trainer.train(n_epochs=100, batch_size=T, plot=True, store_episodes=True)
+# pos 2
+
+# cem_nf_block2d_4(seed=2)2_5
+# pos 2
+
+# cem_nf_block2d_5(seed=3)3_5
+# pos 2
+
+# cem_nf_block2d_6(seed=4)4_5
+# pos 2
+
+# cem_nf_block2d_7(seed=5)5_5
+# pos 2
+
