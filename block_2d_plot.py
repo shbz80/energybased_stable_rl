@@ -15,7 +15,7 @@ exp_name = 'block2D_ppo_torch_garage_1'
 # exp_name = 'block_2d_sac_torch'
 # exp_name = 'block2D_psppo_torch_garage_2'
 
-# exp_name = 'cem_nf_block2d_2'
+# exp_name = 'cem_nf_block2d_4'
 # exp_name = 'block2d_nfppo_garage_e_3'
 # exp_name = 'elitebook/cem_energybased_block2d'
 # exp_name = 'elitebook/cem_energybased_block2d_1'

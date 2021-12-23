@@ -33,7 +33,7 @@ def block2D_ppo_torch_garage(ctxt=None, seed=1):
                                hidden_sizes=[16, 16],
                                hidden_nonlinearity=torch.tanh,
                                output_nonlinearity=None,
-                               init_std=3)
+                               init_std=2)
 
     # value_function = GaussianMLPValueFunction(env_spec=env.spec,
     #                                           hidden_sizes=(32, 32),
@@ -88,4 +88,17 @@ block2D_ppo_torch_garage(seed=3)
 
 # block2D_ppo_torch_garage_1(seed=1)
 # pos 1
+# block2D_ppo_torch_garage_1(seed=4)3_5
+
+# block2D_ppo_torch_garage_2(seed=5)4_5
+
+# block2D_ppo_torch_garage_3(seed=2)
+
+# block2D_ppo_torch_garage_4(seed=1)
+
+# block2D_ppo_torch_garage_5(seed=6)
+
+# block2D_ppo_torch_garage_6(seed=7)
+
+# block2D_ppo_torch_garage_7(seed=8)
 

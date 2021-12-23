@@ -157,3 +157,15 @@ except Exception:
 # cem_nf_yumi_4(seed=4)4_5
 
 # cem_nf_yumi_5(seed=5)5_5
+# cem_nf_yumi(seed=1)1_5
+# trainer.train(n_epochs=100, batch_size=T, plot=False, store_episodes=True)
+
+# cem_nf_yumi_1(seed=2)2_5
+
+# cem_nf_yumi_2(seed=3)3_5
+
+# cem_nf_yumi_3(seed=4)4_5
+
+# cem_nf_yumi_4(seed=5)5_5
+
+# cem_nf_yumi_5(seed=6)6_5

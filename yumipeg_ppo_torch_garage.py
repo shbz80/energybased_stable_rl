@@ -62,10 +62,10 @@ def yumipeg_ppo_garage(ctxt=None, seed=1):
     trainer.setup(algo, env, n_workers=4)
     trainer.train(n_epochs=N, batch_size=T*S, plot=True, store_episodes=True)
 
-yumipeg_ppo_garage(seed=1)
+yumipeg_ppo_garage(seed=5)
 
 
-# yumipeg_ppo_garage(seed=1)
+# yumipeg_ppo_garage(seed=1)1_5
 # policy = GaussianMLPPolicy(env.spec,
 #                                hidden_sizes=[32, 32],
 #                                hidden_nonlinearity=torch.tanh,
@@ -107,3 +107,8 @@ yumipeg_ppo_garage(seed=1)
 # kin_params_yumi['end_link'] = 'left_contact_point'
 # kin_params_yumi['euler_string'] = 'sxyz'
 # kin_params_yumi['goal'] = GOAL
+
+# yumipeg_ppo_garage_1(seed=2)2_5
+# yumipeg_ppo_garage_2(seed=3)3_5
+# yumipeg_ppo_garage_3(seed=4)4_5
+# yumipeg_ppo_garage_4(seed=5)5_5
