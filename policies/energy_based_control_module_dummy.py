@@ -6,6 +6,7 @@ from energybased_stable_rl.utilities.diff import jacobian_batch # the jacobian A
 from energybased_stable_rl.policies.energy_control_modules import ICNN, Damping
 import time
 import traceback
+import random
 base_filename = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment'
 exp_name = 'cem_energybased_yumi_1'
 sample_num = 15
@@ -46,6 +47,8 @@ class EnergyBasedControlModule(nn.Module):
         ep_data = pickle.load(infile)
         infile.close()
         self.epoch = ep_data['stats'].last_episode
+        self.t = 0
+        self.s = 0
 
         self._coord_dim = coord_dim
         self._state_dim = coord_dim*2
@@ -155,44 +158,13 @@ class EnergyBasedControlModule(nn.Module):
         x = state[:,:self._coord_dim] - self.curr_x_min
         x_dot = state[:,self._coord_dim:]
 
-
-        # should the param be clammped and stored? todo
-        quad_pot = self._quad_pot_param.clamp(
-            min=(self._min_quad_pot_param.item()),
-            max=(self._max_quad_pot_param.item()))
-        if torch.any(torch.isnan(quad_pot)):
-            print('nan in quad_pot')
-            assert(False)
-        # quad_pot = quad_pot.exp()     #todo
+        sample = self.epoch[self.s]
 
 
-        # with torch.enable_grad():
-        #     x.requires_grad = True
-        #     psi = self._icnn_module(x)
-        #     self.u_pot = - jacobian_batch(psi, x, create_graph=False).detach()
-        self.u_pot = -self._icnn_module.grad_x(x)
-        # self.u_pot = torch.zeros(self._coord_dim).view(1,-1)        #todo
-        if torch.any(torch.isnan(self.u_pot)):
-            print('nan in u_pot')
-            assert (False)
-        if torch.any((torch.abs(self.u_pot)>10.0)):
-            print('Warning: large u_pot', self.u_pot)
 
-        # self.u_pot = - 5.0 * state[:,:self._coord_dim]
 
-        self.u_quad = -torch.diag(quad_pot) @ state[:,:self._coord_dim].t()
-        self.u_quad.t_()
-        # self.u_quad = torch.zeros(self._coord_dim).view(1,-1)        #todo
-        if torch.any(torch.abs(self.u_quad) > 5.0):
-            print('Warning: large u_quad', self.u_quad)
 
-        self.u_damp = -self._damping_module(x_dot)
-        # self.u_damp = torch.zeros(self._coord_dim).view(1,-1)        #todo
-        if torch.any(torch.isnan(self.u_damp)):
-            print('nan in u_damp')
-            assert (False)
-        if torch.any((torch.abs(self.u_damp)>10.0)):
-            print('Warning: large u_damp', self.u_damp)
+
 
         return self.u_pot, self.u_quad, self.u_damp
 
@@ -208,3 +180,7 @@ class EnergyBasedControlModule(nn.Module):
 
                 """
         return None
+
+    def reset(self):
+        self.t = 0
+        self.s = random.randint()
