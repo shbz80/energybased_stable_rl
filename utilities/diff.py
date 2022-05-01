@@ -32,50 +32,63 @@ def jacobian_batch(y, x, create_graph=False):
     return J
 
 
-x = torch.rand((4,2), requires_grad=True)
-# a = torch.rand(4, requires_grad=False)
+# a = torch.rand((4,2), requires_grad=False)
+# x = torch.rand(2, requires_grad=True)
 #
 # def f(x):
-#     return x @ a
+#     return a @ x
 #
 # y = f(x)
 #
 # J = jacobian(y, x)
 # None
 
+def smooth_relu(x):
+    d = torch.tensor(.01)
+    z = torch.zeros_like(x)
+    if torch.any(x <= 0.0):
+        z[(x <= 0.0)] = 0.0
 
-# icnn_module = ICNN(
-#             2,
-#             hidden_sizes = (8,8),
-#             w_init_y=nn.init.xavier_uniform_,
-#             b_init_y=nn.init.zeros_,
-#             w_init_z=nn.init.constant_,
-#             w_init_z_param=0.1,
-#             nonlinearity=torch.relu
-#         )
-#
-#
-# print('x',x)
+    if torch.any(torch.logical_and(x > 0.0, x < d)):
+        z[torch.logical_and(x > 0.0, x < d)] = x[torch.logical_and(x > 0.0, x < d)]**2/(2.0*d)
+
+    if torch.any(x >= d):
+        z[(x >= d)] = x[(x >= d)]-(d/2.0)
+
+    return z
+
+icnn_module = ICNN(
+            2,
+            hidden_sizes = (8,8),
+            w_init_y=nn.init.xavier_uniform_,
+            b_init_y=nn.init.zeros_,
+            w_init_z=nn.init.constant_,
+            w_init_z_param=0.1,
+            nonlinearity=smooth_relu
+        )
+
+x = torch.rand((2,2), requires_grad=True)
+print('x',x)
 # x.requires_grad = True
-# psi = icnn_module(x)
-# print('psi',psi)
+psi = icnn_module(x)
+print('psi',psi)
+start_time = time.time()
+J = jacobian_batch(psi, x, create_graph=True)
+j_time = time.time()-start_time
+# print('J time', j_time)
 # start_time = time.time()
-# J = jacobian_batch(psi, x, create_graph=True)
-# j_time = time.time()-start_time
-# # print('J time', j_time)
-# # start_time = time.time()
-# # for i in range(x.shape[0]):
-# #     grad = icnn_module.grad_x(x[i].view(1,-1))
-# #     print('grad', grad)
-# # print('grad time', time.time()-start_time)
-# print('J',J)
-# start_time = time.time()
-# x_grad = icnn_module.grad_x(x)
-# grad_time = time.time()-start_time
-# print('x_grad', x_grad)
-# # print('grad time', grad_time)
-# # print('comp time ratio', j_time/grad_time)
-# None
+# for i in range(x.shape[0]):
+#     grad = icnn_module.grad_x(x[i].view(1,-1))
+#     print('grad', grad)
+# print('grad time', time.time()-start_time)
+print('J',J)
+start_time = time.time()
+x_grad = icnn_module.grad_x(x)
+grad_time = time.time()-start_time
+print('x_grad', x_grad)
+# print('grad time', grad_time)
+# print('comp time ratio', j_time/grad_time)
+None
 
 # icnn_module = ICNN(
 #             2,

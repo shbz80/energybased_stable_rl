@@ -5,7 +5,7 @@ from matplotlib import cm
 import numpy as np
 from matplotlib import rc
 import torch
-from normflow_policy.envs.block2D import T
+from envs.block2D import T
 import copy
 
 font_size_1 = 12

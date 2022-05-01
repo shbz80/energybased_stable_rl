@@ -1,5 +1,5 @@
 <mujoco model="abb_irb14000">
-  <compiler angle="radian" meshdir="/home/shahbaz/Software/yumi_kinematics/yumikin/models" />
+  <compiler angle="radian" meshdir="/home/shbz/Software/yumi_kinematics/yumikin/models" />
   <option timestep="0.01" gravity="0 0 0" iterations="20" integrator="RK4" />
   <!-- <option timestep="0.01" gravity="0 0 -9.8" iterations="20" integrator="RK4" /> -->
   <!-- Copied from PR2 model in GPS. This was necessary to get natural behaviour -->

@@ -1,4 +1,4 @@
-from energybased_stable_rl.seed_aggregation import aggregate_results as blocks_aggregate_results
+from seed_aggregation import aggregate_results as blocks_aggregate_results
 success_dit = 0.025
 ############### block 2D ANN-PPO ##########################
 exps = ['block2D_ppo_torch_garage',

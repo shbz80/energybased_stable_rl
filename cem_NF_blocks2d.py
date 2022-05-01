@@ -10,12 +10,12 @@ import torch.nn as nn
 from garage import wrap_experiment
 from garage.envs import GymEnv
 from garage.experiment.deterministic import set_seed
-from energybased_stable_rl.algos.cem import CEM
-from energybased_stable_rl.policies.nf_deterministic_policy import DeterministicNormFlowPolicy
-from normflow_policy.normflow_policy_garage import GaussianNormFlowPolicy
+from algos.cem import CEM
+from policies.nf_deterministic_policy import DeterministicNormFlowPolicy
+from ..normflow_policy.normflow_policy_garage import GaussianNormFlowPolicy
 from garage.np.baselines import LinearFeatureBaseline
 from garage.trainer import Trainer
-from energybased_stable_rl.envs.block2D import T
+from envs.block2D import T
 from garage.sampler import LocalSampler, RaySampler
 from garage.sampler.default_worker import DefaultWorker
 import traceback

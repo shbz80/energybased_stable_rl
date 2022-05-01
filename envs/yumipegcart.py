@@ -46,7 +46,7 @@ rand_init = False
 rand_joint_space = False
 
 kin_params_yumi = {}
-kin_params_yumi['urdf'] = '/home/shahbaz/Software/yumi_kinematics/yumikin/models/yumi_ABB_left.urdf'
+kin_params_yumi['urdf'] = '/home/shbz/Software/yumi_kinematics/yumikin/models/yumi_ABB_left.urdf'
 kin_params_yumi['base_link'] = 'world'
 # kin_params_yumi['end_link'] = 'left_tool0'
 kin_params_yumi['end_link'] = 'left_contact_point'

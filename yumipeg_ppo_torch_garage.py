@@ -7,7 +7,7 @@ from garage.torch.algos import PPO
 from garage.torch.policies import GaussianMLPPolicy
 from garage.torch.value_functions import GaussianMLPValueFunction
 from garage.trainer import Trainer
-from energybased_stable_rl.envs.yumipegcart import T, dA, dO
+from envs.yumipegcart import T, dA, dO
 from garage.np.baselines import LinearFeatureBaseline
 from akro.box import Box
 from garage import EnvSpec
@@ -60,7 +60,7 @@ def yumipeg_ppo_garage(ctxt=None, seed=1):
     # trainer.restore(resume_dir, from_epoch=98)
     # trainer.resume(n_epochs=100)
     trainer.setup(algo, env, n_workers=4)
-    trainer.train(n_epochs=N, batch_size=T*S, plot=True, store_episodes=True)
+    trainer.train(n_epochs=N, batch_size=T*S, plot=True, store_episodes=False)
 
 yumipeg_ppo_garage(seed=5)
 

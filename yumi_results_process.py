@@ -1,4 +1,4 @@
-from energybased_stable_rl.seed_aggregation import aggregate_results as yumi_aggregate_results
+from seed_aggregation import aggregate_results as yumi_aggregate_results
 success_dit = 0.004
 
 ############### yumi ANN-PPO ##########################

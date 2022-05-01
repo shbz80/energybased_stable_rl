@@ -10,11 +10,11 @@ import torch.nn as nn
 from garage import wrap_experiment
 from garage.envs import GymEnv
 from garage.experiment.deterministic import set_seed
-from energybased_stable_rl.algos.cem import CEM
-from energybased_stable_rl.policies.nf_deterministic_policy import DeterministicNormFlowPolicy
+from algos.cem import CEM
+from policies.nf_deterministic_policy import DeterministicNormFlowPolicy
 from garage.np.baselines import LinearFeatureBaseline
 from garage.trainer import Trainer
-from energybased_stable_rl.envs.yumipegcart import T, dA, dO
+from envs.yumipegcart import T, dA, dO
 from garage.sampler import LocalSampler, RaySampler
 from garage.sampler.default_worker import DefaultWorker
 import traceback

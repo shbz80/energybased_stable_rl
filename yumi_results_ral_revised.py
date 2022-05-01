@@ -5,7 +5,7 @@ from matplotlib import cm
 import numpy as np
 from matplotlib import rc
 import torch
-from energybased_stable_rl.envs.yumipegcart import T
+from envs.yumipegcart import T
 import copy
 import random
 

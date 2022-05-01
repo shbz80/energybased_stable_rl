@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 import torch
-from energybased_stable_rl.envs.block2D import T
+from envs.block2D import T
 
 
 base_filename = '/home/shahbaz/Software/garage36/energybased_stable_rl/data/local/experiment'

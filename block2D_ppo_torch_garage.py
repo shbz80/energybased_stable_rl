@@ -10,7 +10,7 @@ from garage.sampler.default_worker import DefaultWorker
 from garage.np.baselines import LinearFeatureBaseline
 from garage.torch.value_functions import GaussianMLPValueFunction
 from garage.trainer import Trainer
-from energybased_stable_rl.envs.block2D import T
+from envs.block2D import T
 
 # @wrap_experiment
 @wrap_experiment(snapshot_mode='all')
